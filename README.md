@@ -3,8 +3,6 @@
 
 ---
 
-
-
 ## 🖲️ Function & Role 
 - `index.html` - Executable Ci5 commands directory
 - `scripts/` - Shell scripts for installation and utilities
@@ -14,24 +12,8 @@
 
 ### All scripts are:
 - **Open source** (*transparent*)
- 
 - **Served as `text/plain`** (_inspect pre-bash_)
- 
 - **Checksummed + version-tagged**
-
-
-## 💻 Local Development 
-```bash
-# Serve locally
-python3 -m http.server 8000
-# Open http://localhost:8000
-```
-
-## 🛫 Deployment
-
-Automatic via Cloudflare Pages:
-- Push to `main` branch → Auto-deployed to ci5.run
-
 
 
 
