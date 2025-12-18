@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const boot = [
         "UPLINK ESTABLISHED.",
-        "IDENTITY: [CAN'T TELEMETRY]",
+        "IDENTITY: [TELEMETRYERROR410]",
         "STATUS: SOVEREIGN",
         "\nCOMMAND PROTOCOLS",
         "--------------------",
