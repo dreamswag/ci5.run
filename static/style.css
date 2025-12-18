@@ -49,6 +49,7 @@ input {
     color: var(--green);
     font-family: var(--font);
     font-size: 20px;
+    letter-spacing: 0.1em;
     flex-grow: 1;
     outline: none;
 }
