@@ -186,15 +186,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Logic
         const c_free = isSov ? `curl -L ${release}/install-full.sh | sh` : "curl ci5.run/free | sh";
+        const c_ward = "curl ci5.run/ward | sh"; 
+        const c_rrul = "curl ci5.run/rrul | sh";
         const c_base = "curl ci5.run/base | sh";
         const c_auto = "curl ci5.run/auto | sh"; // The Overwatch Script
         const c_fast = "curl ci5.run/fast | sh";
         const c_true = "curl ci5.run/true | sh";
         const c_heal = "curl ci5.run/heal | sh";
-        const c_eject = "curl ci5.run/3j3ct | sh";
+        const c_safe = "curl ci5.run/safe | sh"; 
         const c_home = "curl ci5.run/home | sh";
         const c_away = "curl ci5.run/away | sh";
-        const c_4ev3r = "curl ci5.run/4ev3r | sh";
+        const c_hide = "curl ci5.run/hide | sh";
+        const c_void = "curl ci5.run/void | sh";
 
         return [
             "<span class='green'>UPLINK ESTABLISHED.</span>",
@@ -207,15 +210,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             "\n<span class='dim'>COMMAND PROTOCOLS</span>",
             "<span class='dim'>--------------------</span>",
             `  > <span class='green'>FREE</span>       ${c_free}`, // Install
-            `  > <span class='purple'>3J3CT</span>      ${c_eject}`, // The Black Box
+            `  > <span class='green'>WARD</span>       ${c_ward}`, // AdGuard Control
+            `  > <span class='cyan'>RRUL</span>       ${c_rrul}`, // Benchmark
+            `  > <span class='cyan'>FAST</span>       ${c_fast}`, // Speed/SQM
+            `  > <span class='cyan'>AUTO</span>       ${c_auto}`, // Updates
             `  > <span class='cyan'>BASE</span>       ${c_base}`, // Modular Revert
-            `  > <span class='cyan'>AUTO</span>       ${c_auto}`, // Docker Overwatch
-            `  > <span class='cyan'>FAST</span>       ${c_fast}`, // Speed
             `  > <span class='purple'>TRUE</span>       ${c_true}`, // Audit
             `  > <span class='purple'>HEAL</span>       ${c_heal}`, // Emergency
+            `  > <span class='purple'>SAFE</span>       ${c_safe}`, // Backup/Eject
             `  > <span class='orange'>HOME</span>       ${c_home}`, // Tailscale
             `  > <span class='orange'>AWAY</span>       ${c_away}`, // VPN Combo
-            `  > <span class='red'>4EV3R</span>      ${c_4ev3r}`, // Uninstall
+            `  > <span class='orange'>HIDE</span>       ${c_hide}`, // Privacy
+            `  > <span class='red'>VOID</span>       ${c_void}`, // Uninstall
             "\n"
         ];
     }
@@ -260,25 +266,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // --- UPDATED COMMAND DESCRIPTIONS ---
             
-            else if (val === 'free') out.innerHTML += `\n<span class='cyan'>GENESIS / INSTALL:</span> <span class='white'>The primary transformation.</span>\n<span class='dim'>Nukes Pi OS networking, installs Ci5 core, and creates a local factory-restore point.</span>\n<span class='dim'>RUN:</span> curl ci5.run/free | sh\n\n`;
+            else if (val === 'free') out.innerHTML += `\n<span class='cyan'>GENESIS / INSTALL:</span> <span class='white'>The Transformation.</span>\n<span class='dim'>Wipes Pi OS and flashes the Ci5 Golden Image (OpenWrt).</span>\n<span class='dim'>RUN:</span> curl ci5.run/free | sh\n\n`;
             
-            else if (val === '3j3ct' || val === 'eject') out.innerHTML += `\n<span class='purple'>EXODUS / SALVAGE:</span> <span class='white'>The Black Box Recorder.</span>\n<span class='dim'>Packs your logs, custom configs, and Docker volumes into a portable archive (to USB or Boot partition) so you can wipe the card and reinstall safely.</span>\n<span class='dim'>RUN:</span> curl ci5.run/3j3ct | sh\n\n`;
+            else if (val === 'ward') out.innerHTML += `\n<span class='green'>DEFEND / ADGUARD:</span> <span class='white'>DNS Manager.</span>\n<span class='dim'>Interactive tool to restart AdGuard, view logs, or update blocklists.</span>\n<span class='dim'>RUN:</span> curl ci5.run/ward | sh\n\n`;
 
-            else if (val === 'base') out.innerHTML += `\n<span class='cyan'>REVERT / MODULAR:</span> <span class='white'>Targeted Configuration Reset.</span>\n<span class='dim'>Interactive tool to fix specific components (e.g. "Reset AdGuard Only") without nuking the OS. Uses local factory image if offline.</span>\n<span class='dim'>RUN:</span> curl ci5.run/base | sh\n\n`;
+            else if (val === 'rrul') out.innerHTML += `\n<span class='cyan'>STRESS / BENCHMARK:</span> <span class='white'>Bufferbloat Test.</span>\n<span class='dim'>Executes the 'RRUL' load test against Ci5 servers to verify network stability under load.</span>\n<span class='dim'>RUN:</span> curl ci5.run/rrul | sh\n\n`;
 
-            else if (val === 'auto') out.innerHTML += `\n<span class='cyan'>MAINTAIN / OVERWATCH:</span> <span class='white'>Automated Docker Updates.</span>\n<span class='dim'>Configures 'Watchtower' to automatically update Core Ci5 Containers (AdGuard, Unbound). Smart-scoped to ignore user-customized containers to prevent breakage.</span>\n<span class='dim'>RUN:</span> curl ci5.run/auto | sh\n\n`;
+            else if (val === 'base') out.innerHTML += `\n<span class='cyan'>REVERT / MODULAR:</span> <span class='white'>Targeted Configuration Reset.</span>\n<span class='dim'>Resets specific components (e.g. "Reset AdGuard Only") without nuking the OS.</span>\n<span class='dim'>RUN:</span> curl ci5.run/base | sh\n\n`;
+
+            else if (val === 'auto') out.innerHTML += `\n<span class='cyan'>MAINTAIN / OVERWATCH:</span> <span class='white'>Automated Updates.</span>\n<span class='dim'>Configures Watchtower to automatically update Core Ci5 Containers (AdGuard, Unbound). Smart-scoped to ignore user-customized containers.</span>\n<span class='dim'>RUN:</span> curl ci5.run/auto | sh\n\n`;
             
             else if (val === 'fast') out.innerHTML += `\n<span class='cyan'>ACCELERATE / TUNE:</span> <span class='white'>Bandwidth discipline.</span>\n<span class='dim'>Executes local speed test and auto-tunes CAKE SQM limits.</span>\n<span class='dim'>RUN:</span> curl ci5.run/fast | sh\n\n`;
             
-            else if (val === 'true') out.innerHTML += `\n<span class='purple'>AUDIT / VERIFY:</span> <span class='white'>Integrity Check.</span>\n<span class='dim'>ONLINE: Checks for available updates from repo.\nOFFLINE: Validates local files against the install-time Factory Image to detect corruption.</span>\n<span class='dim'>RUN:</span> curl ci5.run/true | sh\n\n`;
+            else if (val === 'true') out.innerHTML += `\n<span class='purple'>AUDIT / VERIFY:</span> <span class='white'>Integrity Check.</span>\n<span class='dim'>Validates local files against the Factory Image to detect corruption.</span>\n<span class='dim'>RUN:</span> curl ci5.run/true | sh\n\n`;
             
             else if (val === 'heal') out.innerHTML += `\n<span class='purple'>REVIVE / UNLOCK:</span> <span class='white'>Anti-Lockout Defibrillator.</span>\n<span class='dim'>Resets Firewall/SSH rules to safe-mode defaults to regain access. Does NOT touch Docker data.</span>\n<span class='dim'>RUN:</span> curl ci5.run/heal | sh\n\n`;
+            
+            else if (val === 'safe') out.innerHTML += `\n<span class='purple'>BACKUP / EJECT:</span> <span class='white'>The Black Box.</span>\n<span class='dim'>Packs your logs, custom configs, and Docker volumes into a portable archive (to USB) so you can wipe and reinstall safely.</span>\n<span class='dim'>RUN:</span> curl ci5.run/safe | sh\n\n`;
             
             else if (val === 'home') out.innerHTML += `\n<span class='orange'>CONNECT / LOCAL:</span> <span class='white'>Tailscale Subnet Router.</span>\n<span class='dim'>Zero-conf setup to access your home LAN from anywhere.</span>\n<span class='dim'>RUN:</span> curl ci5.run/home | sh\n\n`;
             
             else if (val === 'away') out.innerHTML += `\n<span class='orange'>ROAM / HYBRID:</span> <span class='white'>The Ultimate Link.</span>\n<span class='dim'>Combines Wireguard (Privacy) with Tailscale (Access).</span>\n<span class='dim'>RUN:</span> curl ci5.run/away | sh\n\n`;
             
-            else if (val === '4ev3r' || val === 'nuke') out.innerHTML += `\n<span class='red'>DEATH / UNINSTALL:</span> <span class='white'>Total Reversal.</span>\n<span class='dim'>Strips all Ci5 modifications. (RECOMMENDED: Run 3J3CT first to save data).</span>\n<span class='dim'>RUN:</span> curl ci5.run/4ev3r | sh\n\n`;
+            else if (val === 'void') out.innerHTML += `\n<span class='red'>DEATH / UNINSTALL:</span> <span class='white'>Total Reversal.</span>\n<span class='dim'>Strips all Ci5 modifications. (RECOMMENDED: Run SAFE first).</span>\n<span class='dim'>RUN:</span> curl ci5.run/void | sh\n\n`;
 
             else if (val === 'clear') out.textContent = ''; 
             else if (val !== '') out.innerHTML += `<span class='dim'>Err: Unknown command</span>\n`;

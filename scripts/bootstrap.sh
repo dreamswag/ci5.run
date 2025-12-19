@@ -1,373 +1,182 @@
 #!/bin/bash
-# 🚀 Ci5 Bootstrap Installer - Transform Pi OS into Ci5 Router
-# Usage: curl -sSL https://ci5.run/bootstrap | sudo bash
+# ⛩️ Ci5 Bootstrap: The Phoenix Protocol (Golden Image Edition)
+# Pulls Golden Image -> Wipes Disk -> Expands Storage (RAM) -> Injects Config -> Reboots
 
-set -e
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
+CONFIG_FILE="/dev/shm/ci5_soul.conf"
+# ⚠️ VERIFY THIS MATCHES YOUR GITHUB RELEASE FILENAME
+GOLDEN_URL="https://github.com/dreamswag/ci5/releases/latest/download/ci5-factory.img.gz"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-REPO_URL="https://github.com/YOUR_USERNAME/ci5.git"
-INSTALL_DIR="/opt/ci5"
-
-echo -e "${CYAN}"
-echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║  🚀 Ci5 Bootstrap Installer                                    ║"
-echo "║  Native Raspberry Pi OS → 0ms Router in 14.7~ minutes          ║"
-echo "╚════════════════════════════════════════════════════════════════╝"
-echo -e "${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# COMPATIBILITY CHECK
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[1/8] System Compatibility Check...${NC}"
-
-# Must be Raspberry Pi 5
-if ! grep -qE "Raspberry Pi 5" /proc/cpuinfo; then
-    echo -e "${RED}❌ This requires Raspberry Pi 5${NC}"
-    echo "   Detected: $(grep "Model" /proc/cpuinfo | cut -d: -f2)"
-    exit 1
-fi
-
-# Must be running Debian-based OS
-if [ ! -f /etc/debian_version ]; then
-    echo -e "${RED}❌ This requires Debian-based OS (Raspberry Pi OS / Ubuntu)${NC}"
-    exit 1
-fi
-
-# Must be ARM64
-if [ "$(uname -m)" != "aarch64" ]; then
-    echo -e "${RED}❌ This requires 64-bit ARM (aarch64)${NC}"
-    exit 1
-fi
-
-# Must be root
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}❌ Must run as root${NC}"
-    echo "   Try: curl -sSL https://ci5.run/bootstrap | sudo bash"
-    exit 1
-fi
-
-# RAM check
-TOTAL_RAM_MB=$(free -m | awk '/^Mem:/{print $2}')
-if [ "$TOTAL_RAM_MB" -lt 3500 ]; then
-    echo -e "${RED}❌ Insufficient RAM: ${TOTAL_RAM_MB}MB (Need 4GB+)${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Raspberry Pi 5 detected ($(free -h | awk '/^Mem:/{print $2}') RAM)${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# WARNING - DESTRUCTIVE OPERATION
-# ─────────────────────────────────────────────────────────────
-echo ""
-echo -e "${YELLOW}╔════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${YELLOW}║  ⚠️  WARNING: DESTRUCTIVE TRANSFORMATION                       ║${NC}"
-echo -e "${YELLOW}╠════════════════════════════════════════════════════════════════╣${NC}"
-echo -e "${YELLOW}║  This will:                                                    ║${NC}"
-echo -e "${YELLOW}║  • Replace network configuration (goodbye NetworkManager)     ║${NC}"
-echo -e "${YELLOW}║  • Disable Pi OS desktop/GUI services                         ║${NC}"
-echo -e "${YELLOW}║  • Install OpenWrt-style networking (VLANs, firewall)         ║${NC}"
-echo -e "${YELLOW}║  • Convert this Pi into a ROUTER (not a desktop)              ║${NC}"
-echo -e "${YELLOW}║                                                                ║${NC}"
-echo -e "${YELLOW}║  ⚠️  This Pi will LOSE its current network config!            ║${NC}"
-echo -e "${YELLOW}║  ⚠️  You'll need to reconnect via new IP (192.168.99.1)       ║${NC}"
-echo -e "${YELLOW}╚════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
-echo -e "${BOLD}Type 'TRANSFORM' to proceed:${NC} "
-read -r CONFIRM
-
-if [ "$CONFIRM" != "TRANSFORM" ]; then
-    echo -e "${RED}Aborted by user.${NC}"
+# --- 1. AM I ALREADY OPENWRT? ---
+if [ -f /etc/openwrt_release ]; then
+    echo -e "${GREEN}System is OpenWrt (Ci5). Proceeding to Stack Injection...${NC}"
+    # If Golden Image has these pre-installed, these will just update/skip
+    opkg update && opkg install git-http curl ca-certificates
+    mkdir -p /opt
+    if [ -d "/opt/ci5" ]; then cd /opt/ci5 && git pull; else git clone https://github.com/dreamswag/ci5.git /opt/ci5; fi
+    chmod +x /opt/ci5/*.sh
+    exec /opt/ci5/install-full.sh
     exit 0
 fi
 
-# ─────────────────────────────────────────────────────────────
-# DEPENDENCY INSTALLATION
-# ─────────────────────────────────────────────────────────────
+# --- 2. THE INTERVIEW (Run on Debian) ---
+clear
+echo -e "${GREEN}Ci5 MIGRATION WIZARD (Golden Image)${NC}"
+echo "This will replace your current OS with the Ci5 Golden Image."
 echo ""
-echo -e "${CYAN}[2/8] Installing Dependencies...${NC}"
 
-# Update package lists
-apt-get update -qq
+# A. Detect Interface
+IFACE=$(ls /sys/class/net | grep -v "lo" | head -n 1)
+echo -e "Detected WAN Interface: ${YELLOW}$IFACE${NC}"
 
-# Core dependencies
-PACKAGES=(
-    git curl wget
-    python3 python3-pip python3-venv
-    iptables nftables bridge-utils vlan
-    dnsmasq unbound
-    ethtool iproute2 net-tools
-    docker.io docker-compose
-    tc iw hostapd
-)
+# B. Protocol Selection
+echo ""
+echo "Select WAN Protocol:"
+echo "1) DHCP (Cable, Starlink, Existing Router)"
+echo "2) PPPoE (Fiber/DSL - Requires Login)"
+read -p "Select [1/2]: " PROTO_SEL
 
-echo "   Installing: ${PACKAGES[@]}"
-DEBIAN_FRONTEND=noninteractive apt-get install -y "${PACKAGES[@]}" > /dev/null 2>&1
-
-# Install speedtest-cli
-pip3 install --break-system-packages speedtest-cli > /dev/null 2>&1
-
-echo -e "${GREEN}✓ Dependencies installed${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# CLONE CI5 REPOSITORY
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[3/8] Downloading Ci5 Configuration...${NC}"
-
-if [ -d "$INSTALL_DIR" ]; then
-    echo "   Existing installation found - backing up..."
-    mv "$INSTALL_DIR" "${INSTALL_DIR}.bak.$(date +%s)"
+if [ "$PROTO_SEL" = "2" ]; then
+    PROTO="pppoe"
+    read -p "PPPoE Username: " PPP_USER
+    read -p "PPPoE Password: " PPP_PASS
+    read -p "VLAN ID (Leave empty if none, BT=101): " VLAN_ID
+else
+    PROTO="dhcp"
 fi
 
-git clone -q "$REPO_URL" "$INSTALL_DIR"
-cd "$INSTALL_DIR"
+# Save the "Soul" to RAM
+cat > $CONFIG_FILE <<EOF
+WAN_IFACE="$IFACE"
+WAN_PROTO="$PROTO"
+PPP_USER="$PPP_USER"
+PPP_PASS="$PPP_PASS"
+VLAN_ID="$VLAN_ID"
+EOF
 
-echo -e "${GREEN}✓ Ci5 repository cloned${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# NETWORK TRANSFORMATION
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[4/8] Transforming Network Stack...${NC}"
-
-# Disable NetworkManager and systemd-networkd
-systemctl stop NetworkManager 2>/dev/null || true
-systemctl disable NetworkManager 2>/dev/null || true
-systemctl stop systemd-networkd 2>/dev/null || true
-systemctl disable systemd-networkd 2>/dev/null || true
-
-# Install netplan-style configuration (Debian 12+)
-cat > /etc/netplan/01-ci5-base.yaml << 'NETPLAN'
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    eth0:
-      dhcp4: no
-      dhcp6: no
-    eth1:
-      dhcp4: yes
-      dhcp6: no
-  bridges:
-    br-lan:
-      interfaces: [eth0]
-      dhcp4: no
-      addresses: [192.168.99.1/24]
-      routes:
-        - to: default
-          via: 192.168.99.1
-      nameservers:
-        addresses: [127.0.0.1]
-  vlans:
-    eth0.10:
-      id: 10
-      link: eth0
-      addresses: [10.10.10.1/24]
-    eth0.30:
-      id: 30
-      link: eth0
-      addresses: [10.10.30.1/24]
-    eth0.40:
-      id: 40
-      link: eth0
-      addresses: [10.10.40.1/24]
-NETPLAN
-
-# Apply network config
-netplan generate
-netplan apply
-
-echo -e "${GREEN}✓ Network stack transformed${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# FIREWALL SETUP (nftables)
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[5/8] Configuring Firewall...${NC}"
-
-cat > /etc/nftables.conf << 'NFTABLES'
-#!/usr/sbin/nft -f
-
-flush ruleset
-
-table inet filter {
-    chain input {
-        type filter hook input priority 0; policy drop;
-        
-        # Accept loopback
-        iif lo accept
-        
-        # Accept established connections
-        ct state established,related accept
-        
-        # Accept ICMP
-        ip protocol icmp accept
-        
-        # Accept SSH from LAN/VLANs
-        iifname { "br-lan", "eth0.10", "eth0.30", "eth0.40" } tcp dport 22 accept
-        
-        # Accept DNS from LAN/VLANs
-        iifname { "br-lan", "eth0.10", "eth0.30", "eth0.40" } { tcp dport 53, udp dport 53 } accept
-        
-        # Accept DHCP
-        udp dport 67 accept
-    }
-    
-    chain forward {
-        type filter hook forward priority 0; policy drop;
-        
-        # Accept established connections
-        ct state established,related accept
-        
-        # LAN → WAN
-        iifname { "br-lan", "eth0.10", "eth0.30", "eth0.40" } oifname "eth1" accept
-        
-        # IoT/Guest isolation
-        iifname "eth0.30" oifname { "br-lan", "eth0.10" } drop
-        iifname "eth0.40" oifname { "br-lan", "eth0.10", "eth0.30" } drop
-    }
-    
-    chain output {
-        type filter hook output priority 0; policy accept;
-    }
-}
-
-table ip nat {
-    chain postrouting {
-        type nat hook postrouting priority 100; policy accept;
-        oifname "eth1" masquerade
-    }
-}
-NFTABLES
-
-systemctl enable nftables
-systemctl start nftables
-
-echo -e "${GREEN}✓ Firewall configured${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# DNS SETUP (Unbound + dnsmasq)
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[6/8] Configuring DNS...${NC}"
-
-# Unbound configuration
-cat > /etc/unbound/unbound.conf.d/ci5.conf << 'UNBOUND'
-server:
-    interface: 127.0.0.1@5335
-    interface: ::1@5335
-    access-control: 127.0.0.0/8 allow
-    do-ip4: yes
-    do-ip6: no
-    do-udp: yes
-    do-tcp: yes
-    hide-identity: yes
-    hide-version: yes
-    minimal-responses: yes
-    prefetch: yes
-    qname-minimisation: yes
-    rrset-roundrobin: yes
-    use-caps-for-id: no
-UNBOUND
-
-# dnsmasq configuration (DHCP + DNS forwarding)
-cat > /etc/dnsmasq.d/ci5.conf << 'DNSMASQ'
-# Listen on specific interfaces
-interface=br-lan
-interface=eth0.10
-interface=eth0.30
-interface=eth0.40
-bind-interfaces
-
-# DHCP ranges
-dhcp-range=tag:lan,192.168.99.100,192.168.99.200,24h
-dhcp-range=tag:trusted,10.10.10.100,10.10.10.200,24h
-dhcp-range=tag:iot,10.10.30.100,10.10.30.200,24h
-dhcp-range=tag:guest,10.10.40.100,10.10.40.200,24h
-
-# DNS options
-dhcp-option=tag:lan,6,192.168.99.1
-dhcp-option=tag:trusted,6,10.10.10.1
-dhcp-option=tag:iot,6,10.10.30.1
-dhcp-option=tag:guest,6,10.10.40.1
-
-# Upstream DNS (Unbound)
-server=127.0.0.1#5335
-no-resolv
-DNSMASQ
-
-systemctl enable unbound dnsmasq
-systemctl restart unbound dnsmasq
-
-echo -e "${GREEN}✓ DNS configured${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# KERNEL TUNING
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[7/8] Kernel Tuning...${NC}"
-
-cat >> /etc/sysctl.conf << 'SYSCTL'
-# Ci5 Network Tuning
-net.ipv4.ip_forward=1
-net.ipv4.conf.all.forwarding=1
-net.ipv6.conf.all.forwarding=1
-net.core.default_qdisc=fq_codel
-net.ipv4.tcp_congestion_control=bbr
-net.core.rmem_max=16777216
-net.core.wmem_max=16777216
-net.ipv4.tcp_rmem=4096 87380 16777216
-net.ipv4.tcp_wmem=4096 65536 16777216
-net.netfilter.nf_conntrack_max=131072
-SYSCTL
-
-sysctl -p > /dev/null
-
-echo -e "${GREEN}✓ Kernel tuned${NC}"
-
-# ─────────────────────────────────────────────────────────────
-# SETUP WIZARD PREPARATION
-# ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[8/8] Finalizing...${NC}"
-
-# Create auto-launch script for setup wizard
-cat > /root/.bash_profile << 'PROFILE'
-if [ -f /opt/ci5/.needs-setup ]; then
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════════╗"
-    echo "║  🎯 Ci5 Setup Wizard Required                                  ║"
-    echo "╚════════════════════════════════════════════════════════════════╝"
-    echo ""
-    cd /opt/ci5 && sh setup.sh && rm /opt/ci5/.needs-setup
+# --- 3. PREPARE THE FLASH (RAM) ---
+# We don't need to check hardware as much if you only release for Pi 5, 
+# but safety first.
+if ! grep -q "Raspberry Pi 5" /proc/cpuinfo; then
+    echo "⚠️  Warning: This Golden Image is built for Pi 5."
+    echo "Proceeding anyway in 3s..."
+    sleep 3
 fi
-PROFILE
-
-touch /opt/ci5/.needs-setup
-
-# ─────────────────────────────────────────────────────────────
-# COMPLETION
-# ─────────────────────────────────────────────────────────────
-echo ""
-echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  ✅ CI5 BOOTSTRAP COMPLETE                                     ║${NC}"
-echo -e "${GREEN}╠════════════════════════════════════════════════════════════════╣${NC}"
-echo -e "${GREEN}║  System will reboot in 10 seconds...                          ║${NC}"
-echo -e "${GREEN}║                                                                ║${NC}"
-echo -e "${GREEN}║  After reboot:                                                ║${NC}"
-echo -e "${GREEN}║  1. Reconnect: ssh root@192.168.99.1                         ║${NC}"
-echo -e "${GREEN}║  2. Setup wizard will launch automatically                   ║${NC}"
-echo -e "${GREEN}║  3. Answer 5 questions (WAN, ISP, Wi-Fi passwords)           ║${NC}"
-echo -e "${GREEN}║                                                                ║${NC}"
-echo -e "${GREEN}║  ⚠️  Your current SSH session will disconnect!                ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
-
-# Countdown
-for i in 10 9 8 7 6 5 4 3 2 1; do
-    echo -ne "\rRebooting in ${i} seconds... (Ctrl+C to cancel)"
-    sleep 1
-done
 
 echo ""
-reboot
+echo -e "${YELLOW}Downloading Golden Image to RAM...${NC}"
+cd /dev/shm
+curl -L -o openwrt.img.gz "$GOLDEN_URL"
+# Validating download
+if [ ! -s openwrt.img.gz ]; then
+    echo -e "${RED}Error: Download failed or file empty. Check URL.${NC}"
+    exit 1
+fi
+
+# Tools for RAM operations (Pi 5 is aarch64)
+curl -L -o busybox "https://busybox.net/downloads/binaries/1.35.0-aarch64-linux-musl/busybox"
+chmod +x busybox
+
+# Create the Phoenix Script
+cat > phoenix.sh << 'EOF'
+#!/bin/sh
+# This runs in RAM. Path is /run/initramfs/phoenix.sh
+
+echo ">> WRITING GOLDEN IMAGE TO DISK..."
+zcat openwrt.img.gz | dd of=/dev/mmcblk0 bs=4M conv=fsync status=none
+
+echo ">> EXPANDING PARTITION 2 (MAX STORAGE)..."
+# 1. Force Kernel to see the new partition table
+./busybox blockdev --rereadpt /dev/mmcblk0
+sleep 1
+
+# 2. FDISK MAGIC: Delete Part 2, Recreate Part 2 (filling disk)
+# d=delete, 2=part2, n=new, p=primary, 2=part2, \n=default start, \n=default end, w=write
+printf "d\n2\nn\np\n2\n\n\nw\n" | ./busybox fdisk /dev/mmcblk0
+
+echo ">> FINAL PARTITION RELOAD..."
+./busybox blockdev --rereadpt /dev/mmcblk0
+sleep 1
+
+echo ">> INJECTING SOUL (CONFIG)..."
+mkdir -p /mnt/new_root
+mount /dev/mmcblk0p2 /mnt/new_root
+
+if [ $? -eq 0 ]; then
+    . /ci5_soul.conf
+    NW_FILE="/mnt/new_root/etc/config/network"
+    RC_FILE="/mnt/new_root/etc/rc.local"
+
+    # Reset network to basic static LAN (192.168.99.1)
+    echo "config interface 'loopback'" > $NW_FILE
+    echo "    option device 'lo'" >> $NW_FILE
+    echo "    option proto 'static'" >> $NW_FILE
+    echo "    option ipaddr '127.0.0.1'" >> $NW_FILE
+    echo "    option netmask '255.0.0.0'" >> $NW_FILE
+    echo "" >> $NW_FILE
+    echo "config globals 'globals'" >> $NW_FILE
+    echo "    option ula_prefix 'fd00::/48'" >> $NW_FILE
+    echo "" >> $NW_FILE
+    echo "config device" >> $NW_FILE
+    echo "    option name 'br-lan'" >> $NW_FILE
+    echo "    option type 'bridge'" >> $NW_FILE
+    echo "    list ports 'eth0'" >> $NW_FILE
+    echo "" >> $NW_FILE
+    echo "config interface 'lan'" >> $NW_FILE
+    echo "    option device 'br-lan'" >> $NW_FILE
+    echo "    option proto 'static'" >> $NW_FILE
+    # MATCHING TARGET STATE: 192.168.99.1
+    echo "    option ipaddr '192.168.99.1'" >> $NW_FILE 
+    echo "    option netmask '255.255.255.0'" >> $NW_FILE
+
+    # Inject WAN
+    WAN_DEV="$WAN_IFACE"
+    echo "" >> $NW_FILE
+    echo "config interface 'wan'" >> $NW_FILE
+    if [ "$WAN_PROTO" = "pppoe" ]; then
+        if [ -n "$VLAN_ID" ]; then
+            echo "    option device '$WAN_DEV.$VLAN_ID'" >> $NW_FILE
+        else
+            echo "    option device '$WAN_DEV'" >> $NW_FILE
+        fi
+        echo "    option proto 'pppoe'" >> $NW_FILE
+        echo "    option username '$PPP_USER'" >> $NW_FILE
+        echo "    option password '$PPP_PASS'" >> $NW_FILE
+    else
+        echo "    option device '$WAN_DEV'" >> $NW_FILE
+        echo "    option proto 'dhcp'" >> $NW_FILE
+    fi
+    echo "    option peerdns '0'" >> $NW_FILE 
+    echo "    list dns '1.1.1.1'" >> $NW_FILE 
+
+    # Inject Auto-Installer (Downloads the rest of the stack)
+    sed -i '$d' $RC_FILE
+    echo "opkg update && opkg install git-http curl ca-certificates" >> $RC_FILE
+    echo "git clone https://github.com/dreamswag/ci5.git /opt/ci5" >> $RC_FILE
+    echo "chmod +x /opt/ci5/*.sh" >> $RC_FILE
+    echo "/opt/ci5/install-full.sh &" >> $RC_FILE
+    echo "exit 0" >> $RC_FILE
+
+    umount /mnt/new_root
+else
+    echo ">> MOUNT FAILED. BOOTING GOLDEN STOCK."
+fi
+
+echo ">> REBOOTING..."
+echo b > /proc/sysrq-trigger
+EOF
+
+chmod +x phoenix.sh
+cp $CONFIG_FILE /dev/shm/ci5_soul.conf
+
+# --- 4. EXECUTE PHOENIX ---
+echo -e "${RED}Goodbye, Debian.${NC}"
+mkdir -p /run/initramfs
+mount -t tmpfs tmpfs /run/initramfs
+cp phoenix.sh openwrt.img.gz ci5_soul.conf busybox /run/initramfs/
+cd /run/initramfs
+
+echo 1 > /proc/sys/kernel/sysrq
+echo u > /proc/sysrq-trigger
+echo e > /proc/sysrq-trigger
+exec /run/initramfs/phoenix.sh
