@@ -223,14 +223,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             "\n<span class='dim'>COMMAND PROTOCOLS</span>",
             "<span class='dim'>--------------------</span>",
-            `  > <span class='cyan'>FREE</span>       ${c_free}`,
-            `  > <span class='cyan'>FAST</span>       ${c_fast}`,
-            `  > <span class='cyan'>HEAL</span>       ${c_heal}`,
-            `  > <span class='cyan'>SELF</span>       ${c_self}`,
-            `  > <span class='cyan'>PURE</span>       ${c_pure}`,
-            `  > <span class='cyan'>TRUE</span>       ${c_true}`,
-            `  > <span class='cyan'>HIDE</span>       ${c_hide}`,
-            `  > <span class='red'>AWAY</span>       ${c_away}`,
+            `  > <span class='green'>FREE</span>       ${c_free}`, // Install Bootstrap
+            `  > <span class='green'>PURE</span>       ${c_pure}`, // Selective Component Uninstaller; intended for post-install - allowing graceful decoupling of full stack (or Unbound for Lite)
+            `  > <span class='cyan'>FAST</span>       ${c_fast}`, // SQM Speed Test + Tune; more manual config compared to install-lite.sh auto version
+            `  > <span class='purple'>TRUE</span>       ${c_true}`, // File Validity Check vs Expected Important States
+            `  > <span class='purple'>SELF</span>       ${c_self}`, // Bone_Marrow.sh Script Retrieval + Run
+            `  > <span class='purple'>HEAL</span>       ${c_heal}`, // Attempted Anti-Lockout Bruteforce
+            `  > <span class='yellow'>FIND</span>       ${c_find}`, // CLI-GUI for ci5.host (ci5) repo for selective file retrieval(s) of any script etc
+            `  > <span class='orange'>HOME</span>       ${c_home}`, // Install Tailscale Interface for Remote Device DNS routing through home network - or configure core settings if installed already
+            `  > <span class='orange'>HIDE</span>       ${c_hide}`, // Install Wireguard Interface for Network-Wide VPN profile (auto-config-import for Mullvad) - or configure core settings if installed already
+            `  > <span class='orange'>AWAY</span>       ${c_away}`, // Combines Tailscale with Wireguard functionality: alllowing Wireguard + Home DNS routing from anywhere (via just Tailscale app once enabled)  
+            `  > <span class='red'>4EV3R</span>       ${c_away}`,
             "\n"
         ];
     }
