@@ -4,11 +4,11 @@
 
 
 ## 🖲️ Purpose & Functionality
-- `index.html` - Web '**Phone Book**': _dial via (_real_) **Pi 5 terminal**_
+- `index.html` - '**Phone Book**': call from **Pi 5 terminal**
+  
+- `/scripts/` - Shell scripts for installation and utilities
  
-- `/scripts/` - Cloud '**Services**': _installation & utility scripts_
- 
-- `_redirects` - Packets '**Delivery**': _Cloudflare Pages routing configuration_
+- `_redirects` - Cloudflare Pages routing configuration
 
 ## 🕵🏻 Security & Auditability
 
@@ -17,8 +17,6 @@
 > #### > **Served via `text/plain`** ( *inspect pre-bash* )
 
 > #### > **Checksummed** ( + *version-tagged* )
-
-
 
 
 
