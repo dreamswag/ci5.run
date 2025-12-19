@@ -4,8 +4,8 @@
 
 
 ## 🖲️ Purpose & Functionality
-- `index.html` - Executable Ci5 commands directory
-
+- `index.html` - '**[Phone Book]((https://ci5.run))**': call via **Ci5 Terminal**
+  
 - `/scripts/` - Shell scripts for installation and utilities
  
 - `_redirects` - Cloudflare Pages routing configuration
@@ -17,6 +17,7 @@
 > #### > **Served via `text/plain`** ( *inspect pre-bash* )
 
 > #### > **Checksummed** ( + *version-tagged* )
+
 
 
 
