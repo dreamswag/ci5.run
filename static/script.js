@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             "IDENTITY: [<span class='red'>TELEMETRY_ERR:41</span><span id='glitch'>0</span>]",
             isSov ? "<span class='purple'>[ SOVEREIGN MIRROR ACTIVE ]</span>" : "",
             
-            `OASIS CHECKPOINT: <span class='purple' id='live-status'>${globalCount.toLocaleString()}</span> SOVEREIGNS PASSED THROUGH`,
+            `OASIS CHECKPOINT: <span class='purple' id='live-status'>${globalCount.toLocaleString()}</span> SOVEREIGNS`,
             "<span class='ghost'>...send word if you make it</span>", 
             
             "\n<span class='dim'>COMMAND PROTOCOLS</span>",
