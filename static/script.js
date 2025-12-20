@@ -50,6 +50,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setInterval(fetchGlobalCount, 15000);
 
+    // --- NEW: LIVE COMMIT FETCH ---
+    async function getLatestCommit() {
+        try {
+            const r = await fetch('https://api.github.com/repos/dreamswag/ci5/commits/main');
+            const d = await r.json();
+            return d.sha.substring(0, 7);
+        } catch (e) {
+            return "OFFLINE";
+        }
+    }
+
     // --- 3. RESIZE & DRAG LOGIC ---
     const resizers = document.querySelectorAll('.resizer');
     let isResizing = false;
@@ -180,9 +191,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- 5. TERMINAL BOOT & COMMANDS ---
-    function getBootSequence() {
+    async function getBootSequence() {
         const isSov = isSovereignMode();
         const release = "https://github.com/dreamswag/ci5/releases/latest/download";
+        const corkHash = await getLatestCommit(); // Live Hash
 
         // Logic
         const c_free = isSov ? `curl -L ${release}/install-full.sh | sh` : "curl ci5.run/free | sh";
@@ -202,6 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return [
             "<span class='green'>UPLINK ESTABLISHED.</span>",
             "IDENTITY: [<span class='red'>TELEMETRY_ERR:41</span><span id='glitch'>0</span>]",
+            `CORK INTEGRITY: [<span class='purple'>${corkHash}</span>]`,
             isSov ? "<span class='purple'>[ SOVEREIGN MIRROR ACTIVE ]</span>" : "",
             
             `OASIS CHECKPOINT: <span class='purple' id='live-status'>${globalCount.toLocaleString()}</span> SOVEREIGNS`,
@@ -211,6 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             "<span class='dim'>--------------------</span>",
             `  > <span class='green'>FREE</span>       ${c_free}`, // Install
             `  > <span class='green'>WARD</span>       ${c_ward}`, // AdGuard Control
+            `  > <span class='cyan'>CORK</span>       (Registry Search)`, // NEW
             `  > <span class='cyan'>RRUL</span>       ${c_rrul}`, // Benchmark
             `  > <span class='cyan'>FAST</span>       ${c_fast}`, // Speed/SQM
             `  > <span class='cyan'>AUTO</span>       ${c_auto}`, // Updates
@@ -245,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function init() {
         fetchGlobalCount(); 
-        const boot = getBootSequence();
+        const boot = await getBootSequence();
         for (let line of boot) {
             if(line === "") continue;
             out.innerHTML += line + "\n";
@@ -255,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         startGlitch();
     }
 
-    input.addEventListener('keydown', (e) => {
+    input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
             const val = input.value.trim().toLowerCase();
             input.value = '';
@@ -264,11 +278,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (['install', 'bootstrap'].includes(val)) out.innerHTML += `<span class='red'>Err: PARADIGM OBSOLETE. USE 'FREE'</span>\n`;
             
-            // --- UPDATED COMMAND DESCRIPTIONS ---
+            // --- COMMAND DESCRIPTIONS ---
             
             else if (val === 'free') out.innerHTML += `\n<span class='cyan'>GENESIS / INSTALL:</span> <span class='white'>The Transformation.</span>\n<span class='dim'>Wipes Pi OS and flashes the Ci5 Golden Image (OpenWrt).</span>\n<span class='dim'>RUN:</span> curl ci5.run/free | sh\n\n`;
             
+            else if (val === 'dev') out.innerHTML += `\n<span class='red'>WARNING: BLEEDING EDGE.</span>\n<span class='white'>Installs directly from source (ci5.host/cork).</span>\n<span class='dim'>RUN:</span> curl ci5.run/dev | sh\n\n`;
+            
             else if (val === 'ward') out.innerHTML += `\n<span class='green'>DEFEND / ADGUARD:</span> <span class='white'>DNS Manager.</span>\n<span class='dim'>Interactive tool to restart AdGuard, view logs, or update blocklists.</span>\n<span class='dim'>RUN:</span> curl ci5.run/ward | sh\n\n`;
+
+            // --- CORK REGISTRY SEARCH ---
+            else if (val.startsWith('cork')) {
+                const args = val.split(' ');
+                const cmd = args[1];
+                const query = args[2];
+
+                if (cmd === 'search') {
+                    out.innerHTML += `<span class='dim'>CONNECTING TO FACTORY [ci5.dev]...</span>\n`;
+                    try {
+                        const res = await fetch('https://ci5.dev/corks.json'); 
+                        const db = await res.json();
+                        let found = false;
+
+                        const print = (label, cls, items) => {
+                            for (const [key, data] of Object.entries(items)) {
+                                if (!query || key.includes(query)) {
+                                    out.innerHTML += `[<span class='${cls}'>${label}</span>] <span class='white'>${key}</span>\n    <span class='dim'>${data.desc}</span>\n`;
+                                    found = true;
+                                }
+                            }
+                        };
+
+                        if (db.official) print('OFFICIAL', 'green', db.official);
+                        if (db.community) print('COMMUNITY', 'orange', db.community);
+
+                        if (!found) out.innerHTML += `<span class='red'>No matches for '${query}'</span>\n`;
+                    } catch (e) {
+                        out.innerHTML += `<span class='red'>FACTORY OFFLINE.</span>\n`;
+                    }
+                    out.innerHTML += `\n`;
+
+                } else if (cmd === 'install') {
+                    if (!query) out.innerHTML += `<span class='red'>Err: Name required.</span>\n`;
+                    else out.innerHTML += `<span class='green'>QUEUED:</span> ${query}\n<span class='dim'>Add to Soul config to apply.</span>\n\n`;
+                } else {
+                    out.innerHTML += `USAGE: cork search &lt;term&gt; | cork install &lt;name&gt;\n\n`;
+                }
+            }
 
             else if (val === 'rrul') out.innerHTML += `\n<span class='cyan'>STRESS / BENCHMARK:</span> <span class='white'>Bufferbloat Test.</span>\n<span class='dim'>Executes the 'RRUL' load test against Ci5 servers to verify network stability under load.</span>\n<span class='dim'>RUN:</span> curl ci5.run/rrul | sh\n\n`;
 
@@ -287,6 +342,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             else if (val === 'home') out.innerHTML += `\n<span class='orange'>CONNECT / LOCAL:</span> <span class='white'>Tailscale Subnet Router.</span>\n<span class='dim'>Zero-conf setup to access your home LAN from anywhere.</span>\n<span class='dim'>RUN:</span> curl ci5.run/home | sh\n\n`;
             
             else if (val === 'away') out.innerHTML += `\n<span class='orange'>ROAM / HYBRID:</span> <span class='white'>The Ultimate Link.</span>\n<span class='dim'>Combines Wireguard (Privacy) with Tailscale (Access).</span>\n<span class='dim'>RUN:</span> curl ci5.run/away | sh\n\n`;
+
+            else if (val === 'hide') out.innerHTML += `\n<span class='orange'>STEALTH / PRIVACY:</span> <span class='white'>Maximum Anonymity.</span>\n<span class='dim'>Advanced privacy configuration and tracking protection.</span>\n<span class='dim'>RUN:</span> curl ci5.run/hide | sh\n\n`;
             
             else if (val === 'void') out.innerHTML += `\n<span class='red'>DEATH / UNINSTALL:</span> <span class='white'>Total Reversal.</span>\n<span class='dim'>Strips all Ci5 modifications. (RECOMMENDED: Run SAFE first).</span>\n<span class='dim'>RUN:</span> curl ci5.run/void | sh\n\n`;
 
