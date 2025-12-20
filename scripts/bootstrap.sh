@@ -1,16 +1,14 @@
 #!/bin/bash
-# ⛩️ Ci5 Bootstrap: The Phoenix Protocol (Golden Image Edition)
+# ⛩️ Ci5 Bootstrap: The Phoenix Protocol (Golden Edition)
 # Pulls Golden Image -> Wipes Disk -> Expands Storage (RAM) -> Injects Config -> Reboots
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 CONFIG_FILE="/dev/shm/ci5_soul.conf"
-# ⚠️ VERIFY THIS MATCHES YOUR GITHUB RELEASE FILENAME
 GOLDEN_URL="https://github.com/dreamswag/ci5/releases/latest/download/ci5-factory.img.gz"
 
 # --- 1. AM I ALREADY OPENWRT? ---
 if [ -f /etc/openwrt_release ]; then
     echo -e "${GREEN}System is OpenWrt (Ci5). Proceeding to Stack Injection...${NC}"
-    # If Golden Image has these pre-installed, these will just update/skip
     opkg update && opkg install git-http curl ca-certificates
     mkdir -p /opt
     if [ -d "/opt/ci5" ]; then cd /opt/ci5 && git pull; else git clone https://github.com/dreamswag/ci5.git /opt/ci5; fi
@@ -45,6 +43,13 @@ else
     PROTO="dhcp"
 fi
 
+# C. Capture Existing Corks (Persist App Store Selections)
+EXISTING_CORKS=""
+if [ -f /etc/ci5_corks ]; then
+    EXISTING_CORKS=$(cat /etc/ci5_corks)
+    echo -e "Preserving Apps: ${YELLOW}$EXISTING_CORKS${NC}"
+fi
+
 # Save the "Soul" to RAM
 cat > $CONFIG_FILE <<EOF
 WAN_IFACE="$IFACE"
@@ -52,11 +57,10 @@ WAN_PROTO="$PROTO"
 PPP_USER="$PPP_USER"
 PPP_PASS="$PPP_PASS"
 VLAN_ID="$VLAN_ID"
+SAVED_CORKS="$EXISTING_CORKS"
 EOF
 
 # --- 3. PREPARE THE FLASH (RAM) ---
-# We don't need to check hardware as much if you only release for Pi 5, 
-# but safety first.
 if ! grep -q "Raspberry Pi 5" /proc/cpuinfo; then
     echo "⚠️  Warning: This Golden Image is built for Pi 5."
     echo "Proceeding anyway in 3s..."
@@ -67,9 +71,8 @@ echo ""
 echo -e "${YELLOW}Downloading Golden Image to RAM...${NC}"
 cd /dev/shm
 curl -L -o openwrt.img.gz "$GOLDEN_URL"
-# Validating download
 if [ ! -s openwrt.img.gz ]; then
-    echo -e "${RED}Error: Download failed or file empty. Check URL.${NC}"
+    echo -e "${RED}Error: Download failed or file empty.${NC}"
     exit 1
 fi
 
@@ -107,6 +110,11 @@ if [ $? -eq 0 ]; then
     NW_FILE="/mnt/new_root/etc/config/network"
     RC_FILE="/mnt/new_root/etc/rc.local"
 
+    # Restore Corks
+    if [ -n "$SAVED_CORKS" ]; then
+        echo "$SAVED_CORKS" > /mnt/new_root/etc/ci5_corks
+    fi
+
     # Reset network to basic static LAN (192.168.99.1)
     echo "config interface 'loopback'" > $NW_FILE
     echo "    option device 'lo'" >> $NW_FILE
@@ -125,7 +133,6 @@ if [ $? -eq 0 ]; then
     echo "config interface 'lan'" >> $NW_FILE
     echo "    option device 'br-lan'" >> $NW_FILE
     echo "    option proto 'static'" >> $NW_FILE
-    # MATCHING TARGET STATE: 192.168.99.1
     echo "    option ipaddr '192.168.99.1'" >> $NW_FILE 
     echo "    option netmask '255.255.255.0'" >> $NW_FILE
 
@@ -149,7 +156,7 @@ if [ $? -eq 0 ]; then
     echo "    option peerdns '0'" >> $NW_FILE 
     echo "    list dns '1.1.1.1'" >> $NW_FILE 
 
-    # Inject Auto-Installer (Downloads the rest of the stack)
+    # Inject Auto-Installer
     sed -i '$d' $RC_FILE
     echo "opkg update && opkg install git-http curl ca-certificates" >> $RC_FILE
     echo "git clone https://github.com/dreamswag/ci5.git /opt/ci5" >> $RC_FILE
@@ -175,7 +182,6 @@ mkdir -p /run/initramfs
 mount -t tmpfs tmpfs /run/initramfs
 cp phoenix.sh openwrt.img.gz ci5_soul.conf busybox /run/initramfs/
 cd /run/initramfs
-
 echo 1 > /proc/sys/kernel/sysrq
 echo u > /proc/sysrq-trigger
 echo e > /proc/sysrq-trigger
