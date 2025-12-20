@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const out = document.getElementById('terminalOutput');
     const input = document.getElementById('domainInput');
     const termWindow = document.getElementById('terminalWindow');
+    const header = document.getElementById('headerHandle');
     
     // Controls
     const minBtn = document.getElementById('minBtn');
@@ -10,139 +11,291 @@ document.addEventListener('DOMContentLoaded', async () => {
     const taskbar = document.getElementById('taskbar');
     const restoreBtn = document.getElementById('restoreBtn');
 
-    function isSovereignMode() { return window.location.hostname.includes('ipfs') || window.location.hostname.includes('localhost'); }
+    // --- 1. SOVEREIGN MODE DETECTION ---
+    function isSovereignMode() {
+        const h = window.location.hostname;
+        return h.includes('ipfs') || h.includes('.eth') || h.includes('localhost') || h.includes('limo');
+    }
 
-    // Focus Trap
+    // Selection protection
     document.addEventListener('click', (e) => {
-        if (window.getSelection().type !== 'Range') input.focus();
+        if (window.getSelection().type !== 'Range') {
+            input.focus();
+        }
     });
 
-    // --- LIVE DATA ---
+    // --- 2. LIVE STATS LOGIC ---
     let globalCount = 0; 
-    async function fetchStats() {
-        try { if (!isSovereignMode()) { const r = await fetch('/api/stats'); const d = await r.json(); globalCount = d.count || globalCount; } } catch(e){}
+    
+    async function fetchGlobalCount() {
+        try {
+            if (isSovereignMode()) return; 
+            const res = await fetch('/api/stats'); 
+            if (res.ok) {
+                const data = await res.json();
+                globalCount = data.count || globalCount;
+            }
+        } catch (e) {
+            // Silently fail
+        }
+        updateStatusLine();
     }
-    setInterval(fetchStats, 15000);
 
-    async function getCommit() {
-        try { const r = await fetch('https://api.github.com/repos/dreamswag/ci5/commits/main'); const d = await r.json(); return d.sha.substring(0,7); } catch(e){ return "OFFLINE"; }
+    function updateStatusLine() {
+        const statusEl = document.getElementById('live-status');
+        if (statusEl) {
+            statusEl.innerHTML = globalCount.toLocaleString();
+        }
     }
 
-    // --- TERMINAL BOOT ---
-    async function boot() {
-        fetchStats();
-        const hash = await getCommit();
+    setInterval(fetchGlobalCount, 15000);
+
+    // --- 3. RESIZE & DRAG LOGIC ---
+    const resizers = document.querySelectorAll('.resizer');
+    let isResizing = false;
+    
+    resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            isResizing = true;
+            termWindow.style.transition = 'none'; 
+            const rect = termWindow.getBoundingClientRect();
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startWidth = rect.width;
+            const startHeight = rect.height;
+            const startTop = rect.top;
+            const startLeft = rect.left;
+            
+            const onMouseMove = (moveEvent) => {
+                const dx = moveEvent.clientX - startX;
+                const dy = moveEvent.clientY - startY;
+                
+                if (resizer.classList.contains('e') || resizer.classList.contains('ne') || resizer.classList.contains('se')) {
+                    termWindow.style.width = `${startWidth + dx}px`;
+                }
+                if (resizer.classList.contains('s') || resizer.classList.contains('se') || resizer.classList.contains('sw')) {
+                    termWindow.style.height = `${startHeight + dy}px`;
+                }
+                if (resizer.classList.contains('w') || resizer.classList.contains('nw') || resizer.classList.contains('sw')) {
+                    termWindow.style.width = `${startWidth - dx}px`;
+                    termWindow.style.left = `${startLeft + dx}px`;
+                }
+                if (resizer.classList.contains('n') || resizer.classList.contains('ne') || resizer.classList.contains('nw')) {
+                    termWindow.style.height = `${startHeight - dy}px`;
+                    termWindow.style.top = `${startTop + dy}px`;
+                }
+            };
+
+            const onMouseUp = () => {
+                isResizing = false;
+                termWindow.style.transition = 'opacity 0.3s, transform 0.1s';
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    });
+
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    header.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'BUTTON' || isResizing) return;
+        
+        isDragging = true;
+        header.style.cursor = 'grabbing';
+        termWindow.style.transition = 'none';
+
+        if (termWindow.classList.contains('maximized')) {
+            termWindow.classList.remove('maximized');
+            termWindow.style.top = (e.clientY - 20) + 'px';
+            termWindow.style.left = (e.clientX - (termWindow.offsetWidth / 2)) + 'px';
+        }
+
+        const rect = termWindow.getBoundingClientRect();
+        dragOffsetX = e.clientX - rect.left;
+        dragOffsetY = e.clientY - rect.top;
+        termWindow.style.width = rect.width + 'px';
+        termWindow.style.height = rect.height + 'px';
+        termWindow.style.transform = 'none';
+        termWindow.style.left = rect.left + 'px';
+        termWindow.style.top = rect.top + 'px';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        termWindow.style.left = (e.clientX - dragOffsetX) + 'px';
+        termWindow.style.top = (e.clientY - dragOffsetY) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if(isDragging) {
+            isDragging = false;
+            header.style.cursor = 'default';
+            termWindow.style.transition = 'opacity 0.3s, transform 0.1s';
+        }
+    });
+
+    // --- 4. WINDOW CONTROLS ---
+    minBtn.addEventListener('click', () => {
+        termWindow.classList.add('minimized');
+        taskbar.classList.remove('hidden');
+    });
+    restoreBtn.addEventListener('click', () => {
+        termWindow.classList.remove('minimized');
+        taskbar.classList.add('hidden');
+    });
+    maxBtn.addEventListener('click', () => {
+        termWindow.classList.toggle('maximized');
+    });
+    closeBtn.addEventListener('click', () => {
+        termWindow.classList.add('closing-anim');
+        setTimeout(() => {
+            termWindow.style.display = 'none'; 
+            termWindow.classList.remove('closing-anim');
+            setTimeout(() => {
+                termWindow.style.display = 'flex';
+                termWindow.style.opacity = '0'; 
+                termWindow.style.top = '50%';
+                termWindow.style.left = '50%';
+                termWindow.style.transform = 'translate(-50%, -50%)';
+                termWindow.style.width = ''; 
+                termWindow.style.height = ''; 
+                termWindow.classList.remove('maximized', 'minimized');
+                out.innerHTML = ''; 
+                setTimeout(() => {
+                    termWindow.style.transition = 'opacity 0.5s';
+                    termWindow.style.opacity = '1';
+                    setTimeout(() => {
+                        termWindow.style.transition = 'opacity 0.3s, transform 0.1s';
+                        init(); 
+                    }, 500);
+                }, 100);
+            }, 4000); 
+        }, 250); 
+    });
+
+    // --- 5. TERMINAL BOOT & COMMANDS ---
+    function getBootSequence() {
+        const isSov = isSovereignMode();
         const release = "https://github.com/dreamswag/ci5/releases/latest/download";
-        const c_free = isSovereignMode() ? `curl -L ${release}/install-full.sh | sh` : "curl ci5.run/free | sh";
 
-        const lines = [
+        // Logic
+        const c_free = isSov ? `curl -L ${release}/install-full.sh | sh` : "curl ci5.run/free | sh";
+        const c_ward = "curl ci5.run/ward | sh"; 
+        const c_rrul = "curl ci5.run/rrul | sh";
+        const c_base = "curl ci5.run/base | sh";
+        const c_auto = "curl ci5.run/auto | sh"; // The Overwatch Script
+        const c_fast = "curl ci5.run/fast | sh";
+        const c_true = "curl ci5.run/true | sh";
+        const c_heal = "curl ci5.run/heal | sh";
+        const c_safe = "curl ci5.run/safe | sh"; 
+        const c_home = "curl ci5.run/home | sh";
+        const c_away = "curl ci5.run/away | sh";
+        const c_hide = "curl ci5.run/hide | sh";
+        const c_void = "curl ci5.run/void | sh";
+
+        return [
             "<span class='green'>UPLINK ESTABLISHED.</span>",
-            `IDENTITY: [<span class='red'>TELEMETRY_ERR:41</span><span id='glitch'>0</span>]`,
-            `CORK INTEGRITY: [<span class='purple'>${hash}</span>]`, 
-            `OASIS CHECKPOINT: <span class='purple'>${globalCount.toLocaleString()}</span> SOVEREIGNS`,
+            "IDENTITY: [<span class='red'>TELEMETRY_ERR:41</span><span id='glitch'>0</span>]",
+            isSov ? "<span class='purple'>[ SOVEREIGN MIRROR ACTIVE ]</span>" : "",
+            
+            `OASIS CHECKPOINT: <span class='purple' id='live-status'>${globalCount.toLocaleString()}</span> SOVEREIGNS`,
             "<span class='ghost'>...send word if you make it</span>", 
+            
             "\n<span class='dim'>COMMAND PROTOCOLS</span>",
             "<span class='dim'>--------------------</span>",
-            `  > <span class='green'>FREE</span>       ${c_free}`, 
-            `  > <span class='cyan'>CORK</span>       (Registry Search)`,
-            `  > <span class='green'>WARD</span>       curl ci5.run/ward | sh`, 
-            `  > <span class='purple'>SAFE</span>       curl ci5.run/safe | sh`, 
-            `  > <span class='red'>VOID</span>       curl ci5.run/void | sh`, 
+            `  > <span class='green'>FREE</span>       ${c_free}`, // Install
+            `  > <span class='green'>WARD</span>       ${c_ward}`, // AdGuard Control
+            `  > <span class='cyan'>RRUL</span>       ${c_rrul}`, // Benchmark
+            `  > <span class='cyan'>FAST</span>       ${c_fast}`, // Speed/SQM
+            `  > <span class='cyan'>AUTO</span>       ${c_auto}`, // Updates
+            `  > <span class='cyan'>BASE</span>       ${c_base}`, // Modular Revert
+            `  > <span class='purple'>TRUE</span>       ${c_true}`, // Audit
+            `  > <span class='purple'>HEAL</span>       ${c_heal}`, // Emergency
+            `  > <span class='purple'>SAFE</span>       ${c_safe}`, // Backup/Eject
+            `  > <span class='orange'>HOME</span>       ${c_home}`, // Tailscale
+            `  > <span class='orange'>AWAY</span>       ${c_away}`, // VPN Combo
+            `  > <span class='orange'>HIDE</span>       ${c_hide}`, // Privacy
+            `  > <span class='red'>VOID</span>       ${c_void}`, // Uninstall
             "\n"
         ];
-
-        for (let line of lines) {
-            out.innerHTML += line + "\n";
-            out.scrollTop = out.scrollHeight;
-            await new Promise(r => setTimeout(r, 30));
-        }
-        // Glitch Effect
-        setInterval(() => {
-            const el = document.getElementById('glitch');
-            if(el) { el.textContent = '7'; setTimeout(() => el.textContent = '0', 100); }
-        }, 5000);
     }
 
-    // --- INPUT HANDLER ---
-    input.addEventListener('keydown', async (e) => {
+    function startGlitch() {
+        const el = document.getElementById('glitch');
+        if (!el) return;
+        const glitchLoop = () => {
+            setTimeout(() => {
+                el.textContent = '7';
+                el.style.opacity = '0.8';
+                setTimeout(() => {
+                    el.textContent = '0';
+                    el.style.opacity = '1';
+                    glitchLoop(); 
+                }, 80);
+            }, Math.random() * 9000 + 3000);
+        };
+        glitchLoop();
+    }
+
+    async function init() {
+        fetchGlobalCount(); 
+        const boot = getBootSequence();
+        for (let line of boot) {
+            if(line === "") continue;
+            out.innerHTML += line + "\n";
+            out.scrollTop = out.scrollHeight;
+            await new Promise(r => setTimeout(r, 40));
+        }
+        startGlitch();
+    }
+
+    input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const val = input.value.trim().toLowerCase();
             input.value = '';
+            
             out.innerHTML += `<span class='green'>root@ci5:~$</span> <span class='white'>${val}</span>\n`;
 
-            // CORK SEARCH LOGIC (Remote Fetch)
-            if (val.startsWith('cork')) {
-                const parts = val.split(' ');
-                const query = parts[2];
-                if (parts[1] === 'search') {
-                    out.innerHTML += `<span class='dim'>CONNECTING TO [ci5.dev]...</span>\n`;
-                    try {
-                        const r = await fetch('https://ci5.dev/corks.json');
-                        const db = await r.json();
-                        let found = false;
-                        
-                        const print = (label, cls, items) => {
-                            for (const [k, v] of Object.entries(items)) {
-                                if (!query || k.includes(query)) {
-                                    out.innerHTML += `[<span class='${cls}'>${label}</span>] <span class='white'>${k}</span>\n    <span class='dim'>${v.desc}</span>\n`;
-                                    found = true;
-                                }
-                            }
-                        };
-                        if (db.official) print('OFFICIAL', 'green', db.official);
-                        if (db.community) print('COMMUNITY', 'orange', db.community);
-                        
-                        if (!found) out.innerHTML += `<span class='red'>No matches for '${query}'</span>\n`;
-                    } catch(err) { out.innerHTML += `<span class='red'>REGISTRY UNREACHABLE.</span>\n`; }
-                    out.innerHTML += `\n`;
-                } else if (parts[1] === 'install' && query) {
-                    out.innerHTML += `<span class='green'>QUEUED:</span> ${query}\n<span class='dim'>Add to Soul config to apply.</span>\n\n`;
-                } else {
-                    out.innerHTML += `USAGE: cork search &lt;term&gt; | cork install &lt;name&gt;\n\n`;
-                }
+            if (['install', 'bootstrap'].includes(val)) out.innerHTML += `<span class='red'>Err: PARADIGM OBSOLETE. USE 'FREE'</span>\n`;
+            
+            // --- UPDATED COMMAND DESCRIPTIONS ---
+            
+            else if (val === 'free') out.innerHTML += `\n<span class='cyan'>GENESIS / INSTALL:</span> <span class='white'>The Transformation.</span>\n<span class='dim'>Wipes Pi OS and flashes the Ci5 Golden Image (OpenWrt).</span>\n<span class='dim'>RUN:</span> curl ci5.run/free | sh\n\n`;
+            
+            else if (val === 'ward') out.innerHTML += `\n<span class='green'>DEFEND / ADGUARD:</span> <span class='white'>DNS Manager.</span>\n<span class='dim'>Interactive tool to restart AdGuard, view logs, or update blocklists.</span>\n<span class='dim'>RUN:</span> curl ci5.run/ward | sh\n\n`;
 
-            // STANDARD COMMANDS
-            } else if (val === 'free') {
-                out.innerHTML += `<span class='cyan'>INSTALL:</span> Wipes disk. Flashes Golden Image.\n<span class='dim'>RUN:</span> curl ci5.run/free | sh\n\n`;
-            } else if (['ward','safe','void','rrul','fast'].includes(val)) {
-                out.innerHTML += `<span class='dim'>RUN:</span> curl ci5.run/${val} | sh\n\n`;
-            } else if (val === 'clear') {
-                out.textContent = '';
-            } else if (val !== '') {
-                out.innerHTML += `<span class='dim'>Err: Unknown command. Type 'free' or 'cork'.</span>\n`;
-            }
+            else if (val === 'rrul') out.innerHTML += `\n<span class='cyan'>STRESS / BENCHMARK:</span> <span class='white'>Bufferbloat Test.</span>\n<span class='dim'>Executes the 'RRUL' load test against Ci5 servers to verify network stability under load.</span>\n<span class='dim'>RUN:</span> curl ci5.run/rrul | sh\n\n`;
+
+            else if (val === 'base') out.innerHTML += `\n<span class='cyan'>REVERT / MODULAR:</span> <span class='white'>Targeted Configuration Reset.</span>\n<span class='dim'>Resets specific components (e.g. "Reset AdGuard Only") without nuking the OS.</span>\n<span class='dim'>RUN:</span> curl ci5.run/base | sh\n\n`;
+
+            else if (val === 'auto') out.innerHTML += `\n<span class='cyan'>MAINTAIN / OVERWATCH:</span> <span class='white'>Automated Updates.</span>\n<span class='dim'>Configures Watchtower to automatically update Core Ci5 Containers (AdGuard, Unbound). Smart-scoped to ignore user-customized containers.</span>\n<span class='dim'>RUN:</span> curl ci5.run/auto | sh\n\n`;
+            
+            else if (val === 'fast') out.innerHTML += `\n<span class='cyan'>ACCELERATE / TUNE:</span> <span class='white'>Bandwidth discipline.</span>\n<span class='dim'>Executes local speed test and auto-tunes CAKE SQM limits.</span>\n<span class='dim'>RUN:</span> curl ci5.run/fast | sh\n\n`;
+            
+            else if (val === 'true') out.innerHTML += `\n<span class='purple'>AUDIT / VERIFY:</span> <span class='white'>Integrity Check.</span>\n<span class='dim'>Validates local files against the Factory Image to detect corruption.</span>\n<span class='dim'>RUN:</span> curl ci5.run/true | sh\n\n`;
+            
+            else if (val === 'heal') out.innerHTML += `\n<span class='purple'>REVIVE / UNLOCK:</span> <span class='white'>Anti-Lockout Defibrillator.</span>\n<span class='dim'>Resets Firewall/SSH rules to safe-mode defaults to regain access. Does NOT touch Docker data.</span>\n<span class='dim'>RUN:</span> curl ci5.run/heal | sh\n\n`;
+            
+            else if (val === 'safe') out.innerHTML += `\n<span class='purple'>BACKUP / EJECT:</span> <span class='white'>The Black Box.</span>\n<span class='dim'>Packs your logs, custom configs, and Docker volumes into a portable archive (to USB) so you can wipe and reinstall safely.</span>\n<span class='dim'>RUN:</span> curl ci5.run/safe | sh\n\n`;
+            
+            else if (val === 'home') out.innerHTML += `\n<span class='orange'>CONNECT / LOCAL:</span> <span class='white'>Tailscale Subnet Router.</span>\n<span class='dim'>Zero-conf setup to access your home LAN from anywhere.</span>\n<span class='dim'>RUN:</span> curl ci5.run/home | sh\n\n`;
+            
+            else if (val === 'away') out.innerHTML += `\n<span class='orange'>ROAM / HYBRID:</span> <span class='white'>The Ultimate Link.</span>\n<span class='dim'>Combines Wireguard (Privacy) with Tailscale (Access).</span>\n<span class='dim'>RUN:</span> curl ci5.run/away | sh\n\n`;
+            
+            else if (val === 'void') out.innerHTML += `\n<span class='red'>DEATH / UNINSTALL:</span> <span class='white'>Total Reversal.</span>\n<span class='dim'>Strips all Ci5 modifications. (RECOMMENDED: Run SAFE first).</span>\n<span class='dim'>RUN:</span> curl ci5.run/void | sh\n\n`;
+
+            else if (val === 'clear') out.textContent = ''; 
+            else if (val !== '') out.innerHTML += `<span class='dim'>Err: Unknown command</span>\n`;
+            
             out.scrollTop = out.scrollHeight;
         }
     });
 
-    // Window Drag Logic (Simplified for stability)
-    let isDrag = false, startX, startY, winX, winY;
-    const win = document.getElementById('terminalWindow');
-    const head = document.getElementById('headerHandle');
-
-    head.addEventListener('mousedown', (e) => {
-        if(e.target.closest('.controls')) return;
-        isDrag = true; 
-        startX = e.clientX; startY = e.clientY;
-        const rect = win.getBoundingClientRect();
-        winX = rect.left; winY = rect.top;
-        win.style.transform = 'none'; // Disable centering transform
-        win.style.left = winX + 'px'; win.style.top = winY + 'px';
-    });
-    document.addEventListener('mousemove', (e) => {
-        if(!isDrag) return;
-        win.style.left = (winX + (e.clientX - startX)) + 'px';
-        win.style.top = (winY + (e.clientY - startY)) + 'px';
-    });
-    document.addEventListener('mouseup', () => isDrag = false);
-
-    // Controls
-    closeBtn.addEventListener('click', () => { 
-        win.style.opacity = '0'; 
-        setTimeout(() => { win.style.opacity = '1'; out.innerHTML=''; boot(); }, 2000); 
-    });
-    minBtn.addEventListener('click', () => { win.classList.add('minimized'); taskbar.classList.remove('hidden'); });
-    restoreBtn.addEventListener('click', () => { win.classList.remove('minimized'); taskbar.classList.add('hidden'); });
-
-    boot();
+    init();
 });
