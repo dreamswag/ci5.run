@@ -1,13 +1,30 @@
+# ─────────────────────────────────────────────────────────────
+# Ci5.run Redirects (v7.5-HARDENED)
+# Added signature file routes for GPG verification
+# ─────────────────────────────────────────────────────────────
+
 # --- MAIN INSTALLERS (Source: ci5 Main Repo) ---
 /free       https://raw.githubusercontent.com/dreamswag/ci5/main/install-full.sh  302
 /lite       https://raw.githubusercontent.com/dreamswag/ci5/main/install-lite.sh  302
 /true       https://raw.githubusercontent.com/dreamswag/ci5/main/validate.sh      302
 
+# --- SIGNATURE FILES (For GPG verification) ---
+/free.sig   https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh.sig   302
+/lite.sig   https://github.com/dreamswag/ci5/releases/latest/download/install-lite.sh.sig   302
+
+# --- PUBLIC KEY (For importing signing key) ---
+/pubkey     https://raw.githubusercontent.com/dreamswag/ci5/main/ci5-release.pub    302
+/key        https://raw.githubusercontent.com/dreamswag/ci5/main/ci5-release.pub    302
+
 # --- STABLE CHANNEL (Source: GitHub Releases) ---
-/stable     https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh  302
+/stable     https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh      302
+/stable.sig https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh.sig  302
+
+# --- GOLDEN IMAGE (For bootstrap) ---
+/image      https://github.com/dreamswag/ci5/releases/latest/download/ci5-factory.img.gz       302
+/image.sig  https://github.com/dreamswag/ci5/releases/latest/download/ci5-factory.img.gz.sig   302
 
 # --- AUXILIARY TOOLS (Source: ci5.run Tools Repo) ---
-# Note: Ensure these files are physically in the /scripts/ folder of ci5.run repo
 /fast       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/speedwiz.sh          302
 /heal       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/recover.sh           302
 /self       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/bone_marrow.sh       302
@@ -15,8 +32,17 @@
 /hide       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/paranoia_watchdog.sh 302
 /away       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/uninstall.sh         302
 
+# --- BOOTSTRAP (Hardened version) ---
+/bootstrap  https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/bootstrap.sh         302
+
 # --- HANDSHAKE PROTOCOL ---
 /handshake  https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/sovereign-handshake.sh 302
+
+# --- VERIFICATION LIBRARY ---
+/verify     https://raw.githubusercontent.com/dreamswag/ci5/main/lib/verify-signature.sh   302
+
+# --- CHECKSUMS (Alternative verification) ---
+/checksums  https://github.com/dreamswag/ci5/releases/latest/download/SHA256SUMS   302
 
 # --- API (Handled by Cloudflare Functions automatically) ---
 # /api/* is reserved for the /functions folder logic
