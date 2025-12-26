@@ -2,49 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ci5.run</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="https://ci5.run/static/run.png">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="static/run.png">
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-    <div id="taskbar" class="hidden">
-        <div class="dock-icon" id="restoreBtn" title="Restore Terminal">
-            <span class="dock-glitch">>_</span>
-        </div>
-    </div>
+    <!-- Fixed Header with Logo -->
+    <header class="header">
+        <img src="static/ci5run.png" alt="CI5.RUN" class="logo">
+    </header>
 
-    <div class="terminal-container" id="terminalWindow">
-        <div class="resizer n"></div>
-        <div class="resizer e"></div>
-        <div class="resizer s"></div>
-        <div class="resizer w"></div>
-        <div class="resizer ne"></div>
-        <div class="resizer nw"></div>
-        <div class="resizer se"></div>
-        <div class="resizer sw"></div>
+    <!-- Main Content -->
+    <main class="content">
+        <!-- Directory Grid -->
+        <div class="directory">
+            <!-- Row 1 -->
+            <section class="listing green">
+                <h2>🚀 BOOTSTRAP</h2>
+                <div class="entry" data-cmd="free"><span class="n">FREE</span><code>curl ci5.run/free | sh</code><span class="d">Full Stack</span></div>
+                <div class="entry" data-cmd="4evr"><span class="n">4EVR</span><code>curl ci5.run/4evr | sh</code><span class="d">Sovereign</span></div>
+            </section>
 
-        <div class="terminal-header" id="headerHandle">
-            <div class="terminal-tab active-tab">
-                <span class="tab-icon"></span> 
-                <span class="tab-text">root@ci5:~</span>
-            </div>
-            <div class="window-controls">
-                <button class="control minimize" id="minBtn" title="Minimize">&minus;</button>
-                <button class="control maximize" id="maxBtn" title="Maximize">□</button>
-                <button class="control close" id="closeBtn" title="Close">×</button>
-            </div>
+            <section class="listing cyan">
+                <h2>🛡️ RECOVERY</h2>
+                <div class="entry" data-cmd="heal"><span class="n">HEAL</span><code>curl ci5.run/heal | sh</code><span class="d">Self-heal</span></div>
+                <div class="entry" data-cmd="rescue"><span class="n">RESCUE</span><code>curl ci5.run/rescue | sh</code><span class="d">DNS bypass</span></div>
+                <div class="entry" data-cmd="status"><span class="n">STATUS</span><code>curl ci5.run/status | sh</code><span class="d">Health</span></div>
+            </section>
+
+            <section class="listing purple">
+                <h2>🔐 VPN & PRIVACY</h2>
+                <div class="entry" data-cmd="mullvad"><span class="n">MULLVAD</span><code>curl ci5.run/mullvad | sh</code><span class="d">WireGuard</span></div>
+                <div class="entry" data-cmd="tailscale"><span class="n">TAILSCALE</span><code>curl ci5.run/tailscale | sh</code><span class="d">Mesh</span></div>
+                <div class="entry" data-cmd="hybrid"><span class="n">HYBRID</span><code>curl ci5.run/hybrid | sh</code><span class="d">TS→Mullvad</span></div>
+            </section>
+
+            <section class="listing orange">
+                <h2>✈️ TRAVEL</h2>
+                <div class="entry" data-cmd="travel"><span class="n">TRAVEL</span><code>curl ci5.run/travel | sh</code><span class="d">Portal bypass</span></div>
+                <div class="entry" data-cmd="focus"><span class="n">FOCUS</span><code>curl ci5.run/focus | sh</code><span class="d">Block sites</span></div>
+                <div class="entry" data-cmd="wipe"><span class="n">WIPE</span><code>curl ci5.run/wipe | sh</code><span class="d">Shred keys</span></div>
+            </section>
+
+            <!-- Row 2 -->
+            <section class="listing yellow">
+                <h2>📡 MONITORING</h2>
+                <div class="entry" data-cmd="alert"><span class="n">ALERT</span><code>curl ci5.run/alert | sh</code><span class="d">ntfy.sh</span></div>
+                <div class="entry" data-cmd="ddns"><span class="n">DDNS</span><code>curl ci5.run/ddns | sh</code><span class="d">Dynamic DNS</span></div>
+            </section>
+
+            <section class="listing white">
+                <h2>⚙️ SYSTEM</h2>
+                <div class="entry" data-cmd="paranoia"><span class="n">PARANOIA</span><code>curl ci5.run/paranoia | sh</code><span class="d">IDS watch</span></div>
+                <div class="entry" data-cmd="backup"><span class="n">BACKUP</span><code>curl ci5.run/backup | sh</code><span class="d">Export</span></div>
+                <div class="entry" data-cmd="update"><span class="n">UPDATE</span><code>curl ci5.run/update | sh</code><span class="d">GPG update</span></div>
+            </section>
+
+            <section class="listing dim">
+                <h2>🔧 LOCAL <span class="badge">on-device</span></h2>
+                <div class="entry" data-cmd="self"><span class="n">SELF</span><code>sh bone_marrow.sh</code><span class="d">Diagnostics</span></div>
+                <div class="entry" data-cmd="fast"><span class="n">FAST</span><code>sh speed_wizard.sh</code><span class="d">SQM tune</span></div>
+                <div class="entry" data-cmd="true"><span class="n">TRUE</span><code>sh validate.sh</code><span class="d">Validate</span></div>
+            </section>
+
+            <section class="listing red">
+                <h2>🗑️ MAINTENANCE</h2>
+                <div class="entry" data-cmd="away"><span class="n">AWAY</span><code>curl ci5.run/away | sh</code><span class="d">Uninstall</span></div>
+                <div class="entry" data-cmd="pure"><span class="n">PURE</span><code>curl ci5.run/pure | sh</code><span class="d">Selective</span></div>
+            </section>
         </div>
 
-        <div class="terminal-body">
-            <div id="terminalOutput"></div>
-            <div class="input-line">
-                <span class="prompt">root@ci5:~#</span>
-                <input type="text" id="domainInput" autocomplete="off" spellcheck="false" autofocus>
+        <!-- Terminal -->
+        <div class="terminal">
+            <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">root@ci5:~</span></div>
+            <div class="term-body">
+                <div class="boot"><span class="tg">CI5.RUN</span> <span class="td">v7.4-RC-1</span> <span class="tg">UPLINK ESTABLISHED.</span></div>
+                <div class="boot">IDENTITY: [<span class="tr">TELEMETRY_ERR:41</span><span id="glitch">0</span>]</div>
+                <div class="boot ghost">"We cannot expect governments, corporations, or other large, faceless organizations to grant us privacy out of their beneficence. It is to their advantage to speak of us, and we should expect that they will speak."</div>
+                <div id="output"></div>
+                <div class="input-row"><span class="prompt">root@ci5:~#</span><input type="text" id="input" autocomplete="off" spellcheck="false" placeholder="type command..."></div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <div class="toast" id="toast">Copied!</div>
     <script src="static/script.js"></script>
 </body>
 </html>

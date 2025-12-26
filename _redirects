@@ -1,48 +1,193 @@
-# ─────────────────────────────────────────────────────────────
-# Ci5.run Redirects (v7.5-HARDENED)
-# Added signature file routes for GPG verification
-# ─────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# CI5.RUN - Cloudflare Pages Redirects
+# v7.5-RELEASE | The Net Correctional
+# ═══════════════════════════════════════════════════════════════════════════
+# 
+# ARCHITECTURE:
+#   - Day 0 (Bootstrap): /free, /4evr → Full installers
+#   - Day 2 (Extensions): /heal, /mullvad, etc → Curl-pipeable scripts
+#   - Local Tools: /self, /fast, /true → Already on device, redirect to docs
+#   - Maintenance: /away, /pure → Uninstall routines
+#
+# SECURITY NOTE:
+#   All scripts served with 302 (temporary) to allow emergency revocation.
+#   Users should always inspect before piping: curl ci5.run/X | less
+#
+# ═══════════════════════════════════════════════════════════════════════════
 
-# --- MAIN INSTALLERS (Source: ci5 Main Repo) ---
-/free       https://raw.githubusercontent.com/dreamswag/ci5/main/install-full.sh  302
-/lite       https://raw.githubusercontent.com/dreamswag/ci5/main/install-lite.sh  302
-/true       https://raw.githubusercontent.com/dreamswag/ci5/main/validate.sh      302
+# ───────────────────────────────────────────────────────────────────────────
+# DAY 0: BOOTSTRAP INSTALLERS
+# ───────────────────────────────────────────────────────────────────────────
+# Full Stack: Docker + Suricata IDS + Cork ecosystem
+/free       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/install/install-full.sh       302
 
-# --- SIGNATURE FILES (For GPG verification) ---
-/free.sig   https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh.sig   302
-/lite.sig   https://github.com/dreamswag/ci5/releases/latest/download/install-lite.sh.sig   302
+# Sovereign: Minimal footprint, no Docker, no telemetry
+/4evr       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/install/install-lite.sh       302
 
-# --- PUBLIC KEY (For importing signing key) ---
-/pubkey     https://raw.githubusercontent.com/dreamswag/ci5/main/ci5-release.pub    302
-/key        https://raw.githubusercontent.com/dreamswag/ci5/main/ci5-release.pub    302
+# Aliases for discoverability
+/full       /free       301
+/lite       /4evr       301
+/sovereign  /4evr       301
+/minimal    /4evr       301
 
-# --- STABLE CHANNEL (Source: GitHub Releases) ---
-/stable     https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh      302
-/stable.sig https://github.com/dreamswag/ci5/releases/latest/download/install-full.sh.sig  302
+# ───────────────────────────────────────────────────────────────────────────
+# DAY 2: RECOVERY & INTEGRITY
+# ───────────────────────────────────────────────────────────────────────────
+# Self-heal: Verify checksums + restore corrupted base scripts from ci5.host
+/heal       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/recovery/self_heal.sh         302
 
-# --- GOLDEN IMAGE (For bootstrap) ---
-/image      https://github.com/dreamswag/ci5/releases/latest/download/ci5-factory.img.gz       302
-/image.sig  https://github.com/dreamswag/ci5/releases/latest/download/ci5-factory.img.gz.sig   302
+# Emergency DNS: Force public resolvers when DNS is broken
+/rescue     https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/recovery/force_public_dns.sh  302
 
-# --- AUXILIARY TOOLS (Source: ci5.run Tools Repo) ---
-/fast       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/speedwiz.sh          302
-/heal       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/recover.sh           302
-/self       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/bone_marrow.sh       302
-/pure       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/partial-uninstall.sh 302
-/hide       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/paranoia_watchdog.sh 302
-/away       https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/uninstall.sh         302
+# Quick health check: Pass/fail diagnostics with exit codes
+/status     https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/diagnostics/quick_check.sh    302
 
-# --- BOOTSTRAP (Hardened version) ---
-/bootstrap  https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/bootstrap.sh         302
+# Aliases
+/fix        /heal       301
+/dns        /rescue     301
+/check      /status     301
+/health     /status     301
 
-# --- HANDSHAKE PROTOCOL ---
-/handshake  https://raw.githubusercontent.com/dreamswag/ci5.run/main/scripts/sovereign-handshake.sh 302
+# ───────────────────────────────────────────────────────────────────────────
+# DAY 2: VPN & PRIVACY
+# ───────────────────────────────────────────────────────────────────────────
+# Mullvad WireGuard: Full tunnel + killswitch
+/mullvad    https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/vpn/setup_mullvad.sh          302
 
-# --- VERIFICATION LIBRARY ---
-/verify     https://raw.githubusercontent.com/dreamswag/ci5/main/lib/verify-signature.sh   302
+# Tailscale: Profile-aware (Docker sidecar vs native binary)
+/tailscale  https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/vpn/setup_tailscale.sh        302
 
-# --- CHECKSUMS (Alternative verification) ---
-/checksums  https://github.com/dreamswag/ci5/releases/latest/download/SHA256SUMS   302
+# Hybrid routing: Tailscale ingress → Mullvad egress
+/hybrid     https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/vpn/routing_policy_hybrid.sh  302
 
-# --- API (Handled by Cloudflare Functions automatically) ---
-# /api/* is reserved for the /functions folder logic
+# Aliases
+/wg         /mullvad    301
+/ts         /tailscale  301
+/mesh       /tailscale  301
+/split      /hybrid     301
+
+# ───────────────────────────────────────────────────────────────────────────
+# DAY 2: TRAVEL & DIGITAL HYGIENE
+# ───────────────────────────────────────────────────────────────────────────
+# Travel mode: MAC clone + TTL fix + captive portal trigger
+/travel     https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/travel/hotel_bypass.sh        302
+
+# Focus mode: Temporary domain blocking with auto-revert
+/focus      https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/productivity/temp_block.sh    302
+
+# Deep wipe: Shred keys, flush logs, fstrim flash
+/wipe       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/privacy/deep_clean.sh         302
+
+# Aliases
+/hotel      /travel     301
+/captive    /travel     301
+/block      /focus      301
+/distract   /focus      301
+/clean      /wipe       301
+/shred      /wipe       301
+
+# ───────────────────────────────────────────────────────────────────────────
+# DAY 2: MONITORING & NOTIFICATIONS
+# ───────────────────────────────────────────────────────────────────────────
+# ntfy.sh integration: Push notifications for critical log events
+/alert      https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/monitor/log_to_ntfy.sh        302
+
+# DDNS: Dynamic DNS + WireGuard endpoint sync
+/ddns       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/net/ddns_monitor.sh           302
+
+# Aliases
+/ntfy       /alert      301
+/notify     /alert      301
+/dyn        /ddns       301
+
+# ───────────────────────────────────────────────────────────────────────────
+# DAY 2: SYSTEM MANAGEMENT
+# ───────────────────────────────────────────────────────────────────────────
+# Paranoia mode: Toggle WAN-kill-on-IDS-death watchdog
+/paranoia   https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/security/paranoia_toggle.sh   302
+
+# Backup: Encrypted config export (hardware-bound key)
+/backup     https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/system/config_backup.sh       302
+
+# Update: GPG-verified self-update with rollback checkpoint
+/update     https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/system/safe_update.sh         302
+
+# Aliases
+/watchdog   /paranoia   301
+/save       /backup     301
+/export     /backup     301
+/upgrade    /update     301
+
+# ───────────────────────────────────────────────────────────────────────────
+# LOCAL TOOLS (Redirect to documentation - scripts are on-device)
+# ───────────────────────────────────────────────────────────────────────────
+# These scripts ship with the base install and run locally
+/self       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/local/bone_marrow.sh          302
+/fast       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/local/speed_wizard.sh         302
+/true       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/local/validate.sh             302
+
+# Aliases
+/diag       /self       301
+/diagnostic /self       301
+/speed      /fast       301
+/sqm        /fast       301
+/validate   /true       301
+/verify     /true       301
+
+# ───────────────────────────────────────────────────────────────────────────
+# MAINTENANCE & UNINSTALL
+# ───────────────────────────────────────────────────────────────────────────
+# Full uninstall: Remove all ci5 components
+/away       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/maintenance/uninstall.sh      302
+
+# Partial uninstall: Selective component removal (interactive)
+/pure       https://raw.githubusercontent.com/thenetcorrectional/ci5.run/main/scripts/maintenance/partial_uninstall.sh 302
+
+# Aliases
+/uninstall  /away       301
+/remove     /away       301
+/partial    /pure       301
+/selective  /pure       301
+
+# ───────────────────────────────────────────────────────────────────────────
+# DOCUMENTATION & META
+# ───────────────────────────────────────────────────────────────────────────
+# Command reference
+/help       /index.html 301
+/docs       /index.html 301
+/commands   /index.html 301
+/?          /index.html 301
+
+# Project links
+/source     https://github.com/thenetcorrectional/ci5.run                                                           301
+/github     https://github.com/thenetcorrectional/ci5.run                                                           301
+/repo       https://github.com/thenetcorrectional/ci5.run                                                           301
+
+# Trust anchor
+/host       https://ci5.host                                                                                         301
+/trust      https://ci5.host                                                                                         301
+
+# Cork ecosystem
+/dev        https://ci5.dev                                                                                          301
+/corks      https://ci5.dev                                                                                          301
+/extensions https://ci5.dev                                                                                          301
+
+# ───────────────────────────────────────────────────────────────────────────
+# OFFLINE ARCHIVE (Bundled scripts for air-gapped deployment)
+# ───────────────────────────────────────────────────────────────────────────
+/offline    https://github.com/thenetcorrectional/ci5.run/releases/latest/download/ci5-scripts-offline.tar.gz       302
+/bundle     /offline    301
+/archive    /offline    301
+/airgap     /offline    301
+
+# ───────────────────────────────────────────────────────────────────────────
+# API ENDPOINTS (Cloudflare Workers)
+# ───────────────────────────────────────────────────────────────────────────
+# Stats endpoint for live counter (handled by Worker, not redirect)
+# /api/stats → Returns { "count": N } for oasis counter
+
+# ───────────────────────────────────────────────────────────────────────────
+# FALLBACK
+# ───────────────────────────────────────────────────────────────────────────
+# 404 for unknown routes
+/*          /404.html   404

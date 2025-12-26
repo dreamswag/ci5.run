@@ -1,0 +1,29 @@
+# ═══════════════════════════════════════════════════════════════════
+# CI5.RUN - HTTP Headers Configuration
+# ═══════════════════════════════════════════════════════════════════
+
+# Global headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: interest-cohort=()
+
+# HTML pages - no cache (allow quick updates)
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+# Static assets - cache for 1 day
+/static/*
+  Cache-Control: public, max-age=86400
+
+# Scripts - no cache (security: allow revocation)
+/scripts/*
+  Cache-Control: no-store
+  Content-Type: text/plain; charset=utf-8
+
+# API endpoints
+/api/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET
+  Cache-Control: no-store

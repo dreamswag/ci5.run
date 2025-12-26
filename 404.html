@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - ci5.run</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            min-height: 100vh;
+            background: #000;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #39ff14;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.03;
+        }
+        
+        .container {
+            max-width: 600px;
+        }
+        
+        .glitch-404 {
+            font-size: 120px;
+            text-shadow: 
+                0 0 10px rgba(57, 255, 20, 0.8),
+                0 0 20px rgba(57, 255, 20, 0.6),
+                0 0 40px rgba(57, 255, 20, 0.4);
+            animation: flicker 0.15s infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes flicker {
+            0%, 90% { opacity: 1; }
+            91% { opacity: 0.8; }
+            92% { opacity: 1; }
+            93% { opacity: 0.9; }
+        }
+        
+        .message {
+            font-size: 24px;
+            color: #d3d7cf;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .hint {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 40px;
+        }
+        
+        .hint code {
+            color: #00e5ff;
+            background: rgba(0, 229, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+        
+        .commands {
+            text-align: left;
+            display: inline-block;
+            background: rgba(57, 255, 20, 0.05);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .commands h3 {
+            color: #39ff14;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .cmd-line {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        
+        .cmd-line .route {
+            color: #00e5ff;
+            min-width: 80px;
+            display: inline-block;
+        }
+        
+        .cmd-line .desc {
+            color: #555;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: #39ff14;
+            text-decoration: none;
+            font-size: 20px;
+            padding: 12px 30px;
+            border: 1px solid #39ff14;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .back-link:hover {
+            background: #39ff14;
+            color: #000;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+        }
+        
+        @media (max-width: 480px) {
+            .glitch-404 { font-size: 80px; }
+            .message { font-size: 18px; }
+            .commands { padding: 15px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glitch-404">404</div>
+        <div class="message">
+            SIGNAL LOST<br>
+            <span style="color: #555;">Route not found in command registry</span>
+        </div>
+        
+        <div class="hint">
+            Looking for something? Try <code>curl ci5.run/help</code>
+        </div>
+        
+        <div class="commands">
+            <h3>Quick Reference</h3>
+            <div class="cmd-line"><span class="route">/free</span> <span class="desc">Full Stack install</span></div>
+            <div class="cmd-line"><span class="route">/4evr</span> <span class="desc">Sovereign install</span></div>
+            <div class="cmd-line"><span class="route">/heal</span> <span class="desc">Self-repair</span></div>
+            <div class="cmd-line"><span class="route">/rescue</span> <span class="desc">Emergency DNS</span></div>
+            <div class="cmd-line"><span class="route">/status</span> <span class="desc">Health check</span></div>
+        </div>
+        
+        <br><br>
+        
+        <a href="/" class="back-link">← Return to Terminal</a>
+    </div>
+</body>
+</html>
