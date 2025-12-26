@@ -45,9 +45,9 @@ html, body {
 }
 
 .logo {
-    /* 74.1% of original size */
     height: 199px; 
     width: auto;
+    image-rendering: pixelated;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -73,10 +73,7 @@ html, body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
-    
-    /* INCREASED SPACING: Added breathing room between boxes and terminal */
     margin-bottom: 45px; 
-    
     width: 100%;
 }
 
