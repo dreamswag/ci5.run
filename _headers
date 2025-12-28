@@ -27,3 +27,6 @@
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Cache-Control: no-store
+
+/stub.sh
+  Content-Type: text/plain; charset=utf-8
