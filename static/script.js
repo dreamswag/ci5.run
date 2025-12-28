@@ -23,82 +23,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const COMMANDS = {
         free: { 
-            cmd: 'curl ci5.run/free | sh', 
+            cmd: 'curl -sL ci5.run | sh -s free', 
             summary: 'Install Full Stack',
             desc: '[Docker: Suricata IDS, AdGuard Home, CrowdSec, Ntopng & Redis, and Homepage. Maximum security & monitoring.]' 
         },
         '4evr': { 
-            cmd: 'curl ci5.run/4evr | sh', 
+            cmd: 'curl -sL ci5.run | sh -s 4evr', 
             summary: 'Install Lite Stack',
             desc: '[No Docker. Kernel Hardening, Firewall Zones, Unbound DNS, and CAKE SQM. Maximum routing efficiency.]' 
         },
         heal: { 
-            cmd: 'curl ci5.run/heal | sh', 
+            cmd: 'curl -sL ci5.run | sh -s heal', 
             summary: 'System Integrity Repair',
             desc: '[Verifies local scripts against trusted server checksums. Automatically restores missing or corrupted files to fix broken systems.]' 
         },
         rescue: { 
-            cmd: 'curl ci5.run/rescue | sh', 
+            cmd: 'curl -sL ci5.run | sh -s rescue', 
             summary: 'Emergency DNS Bypass',
             desc: '[Forces the router to use public resolvers (1.1.1.1) to restore internet access when local DNS fails but connection is active.]' 
         },
         status: { 
-            cmd: 'curl ci5.run/status | sh', 
+            cmd: 'curl -sL ci5.run | sh -s status', 
             summary: 'Quick Health Check',
             desc: '[Runs a simplified pass/fail diagnostic on internet connectivity, firewall rules, and services. Useful for a quick status verification.]' 
         },
         mullvad: { 
-            cmd: 'curl ci5.run/mullvad | sh', 
+            cmd: 'curl -sL ci5.run | sh -s mullvad', 
             summary: 'WireGuard Privacy Shield',
             desc: '[Configure Mullvad VPN with an automatic Killswitch. If the VPN drops, all traffic is blocked to prevent IP leaks.]' 
         },
         tailscale: { 
-            cmd: 'curl ci5.run/tailscale | sh', 
+            cmd: 'curl -sL ci5.run | sh -s tailscale', 
             summary: 'Mesh Network Node',
             desc: '[Connects your router to Tailscale for secure remote access. Reach your home devices from anywhere without opening firewall ports.]' 
         },
         hybrid: { 
-            cmd: 'curl ci5.run/hybrid | sh', 
+            cmd: 'curl -sL ci5.run | sh -s hybrid', 
             summary: 'Split-Horizon Routing',
             desc: '[Directs incoming remote access through Tailscale, while forcing all outgoing home traffic through the anonymous Mullvad VPN.]' 
         },
         travel: { 
-            cmd: 'curl ci5.run/travel | sh', 
+            cmd: 'curl -sL ci5.run | sh -s travel', 
             summary: 'Hotel Wi-Fi Bypass',
             desc: '[Clones your MAC address and modifies TTL to mimic a single device. Essential for getting past captive portals at hotels & airports.]' 
         },
         focus: { 
-            cmd: 'curl ci5.run/focus | sh', 
+            cmd: 'curl -sL ci5.run | sh -s focus', 
             summary: 'Productivity Timer',
             desc: '[Temporarily blocks distracting sites (Social, Streaming) for a set duration. Automatically unblocks them when the timer expires.]' 
         },
         wipe: { 
-            cmd: 'curl ci5.run/wipe | sh', 
+            cmd: 'curl -sL ci5.run | sh -s wipe', 
             summary: 'Digital Shredder',
             desc: '[Securely overwrites VPN keys, wipes shell history, flushes logs, and trims storage. Use before crossing borders or selling device.]' 
         },
         alert: { 
-            cmd: 'curl ci5.run/alert | sh', 
+            cmd: 'curl -sL ci5.run | sh -s alert', 
             summary: 'Mobile Notifications',
             desc: '[Configures ntfy.sh to send push alerts to your phone. Get notified instantly of intrusion attempts, errors, or reboots.]' 
         },
         ddns: { 
-            cmd: 'curl ci5.run/ddns | sh', 
+            cmd: 'curl -sL ci5.run | sh -s ddns', 
             summary: 'Dynamic IP Sync',
             desc: '[Updates DNS records and re-syncs WireGuard peers when your home IP changes. Keeps VPNs connected on dynamic residential lines.]' 
         },
         paranoia: { 
-            cmd: 'curl ci5.run/paranoia | sh', 
-            summary: '[FREE Only] IDS Dead-Man Switch',
+            cmd: 'curl -sL ci5.run | sh -s paranoia', 
+            summary: '[SURICATA] IDS Dead-Man Switch',
             desc: '[Monitors Suricata Intrusion Detection. If the scanner dies, it kills the internet connection to ensure no un-scanned traffic.]' 
         },
         backup: { 
-            cmd: 'curl ci5.run/backup | sh', 
+            cmd: 'curl -sL ci5.run | sh -s backup', 
             summary: 'Hardware-Locked Export',
             desc: '[Creates an encrypted config backup bound to this specific device\'s hardware ID. Cannot be decrypted on any other router.]' 
         },
         update: { 
-            cmd: 'curl ci5.run/update | sh', 
+            cmd: 'curl -sL ci5.run | sh -s update', 
             summary: 'Secure Self-Update',
             desc: '[Fetches latest scripts with GPG signature verification. Includes a rollback checkpoint to revert changes if the update fails.]' 
         },
@@ -121,12 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
             local: true 
         },
         away: { 
-            cmd: 'curl ci5.run/away | sh', 
+            cmd: 'curl -sL ci5.run | sh -s away', 
             summary: 'Factory Reset (CI5)',
             desc: '[Completely removes all CI5 scripts, containers, and configurations. Restores the router to a clean, stock OpenWrt state.]' 
         },
         pure: { 
-            cmd: 'curl ci5.run/pure | sh', 
+            cmd: 'curl -sL ci5.run | sh -s pure', 
             summary: 'Selective Uninstaller',
             desc: '[Interactive wizard to remove specific components (e.g., "remove just Docker" or "remove just WireGuard") while keeping others.]' 
         }
