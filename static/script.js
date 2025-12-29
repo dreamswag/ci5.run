@@ -1,6 +1,6 @@
 /**
  * CI5.RUN - Compact Directory
- * v8.8-RELEASE (Structured Terminal Output)
+ * v8.0-RELEASE (Unified Verification)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,17 +11,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Define colors for categories
     const CAT_COLORS = {
-        free: 'green', '4evr': 'green',
+        // Bootstrap (green)
+        free: 'green', '4evr': 'green', '1314': 'green',
+        // Recovery (cyan)
         heal: 'cyan', rescue: 'cyan', status: 'cyan',
-        mullvad: 'purple', tailscale: 'purple', hybrid: 'purple',
-        travel: 'orange', focus: 'orange', wipe: 'orange',
-        alert: 'yellow', ddns: 'yellow',
+        // System (white)
         paranoia: 'white', backup: 'white', update: 'white',
+        // Local (dim)
         self: 'dim', fast: 'dim', true: 'dim',
-        away: 'red', pure: 'red'
+        // Maintenance (red)
+        away: 'red', pure: 'red', wipe: 'red',
+        // VPN (purple)
+        mullvad: 'purple', tailscale: 'purple', hybrid: 'purple',
+        // Travel (orange)
+        travel: 'orange', clone: 'orange', focus: 'orange',
+        // Monitoring (yellow)
+        alert: 'yellow', ddns: 'yellow', gamesense: 'yellow'
     };
 
     const COMMANDS = {
+        // 🚀 BOOTSTRAP
         free: { 
             cmd: 'curl -sL ci5.run | sh -s free', 
             summary: 'Install Full Stack',
@@ -32,6 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
             summary: 'Install Lite Stack',
             desc: '[No Docker. Kernel Hardening, Firewall Zones, Unbound DNS, and CAKE SQM. Maximum routing efficiency.]' 
         },
+        '1314': { 
+            cmd: 'curl -sL ci5.run | sh -s 1314', 
+            summary: 'Custom Installation',
+            desc: '[Interactive installer. Choose which components to install. Full control over your stack.]' 
+        },
+        
+        // 🛡️ RECOVERY
         heal: { 
             cmd: 'curl -sL ci5.run | sh -s heal', 
             summary: 'System Integrity Repair',
@@ -47,46 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
             summary: 'Quick Health Check',
             desc: '[Runs a simplified pass/fail diagnostic on internet connectivity, firewall rules, and services. Useful for a quick status verification.]' 
         },
-        mullvad: { 
-            cmd: 'curl -sL ci5.run | sh -s mullvad', 
-            summary: 'WireGuard Privacy Shield',
-            desc: '[Configure Mullvad VPN with an automatic Killswitch. If the VPN drops, all traffic is blocked to prevent IP leaks.]' 
-        },
-        tailscale: { 
-            cmd: 'curl -sL ci5.run | sh -s tailscale', 
-            summary: 'Mesh Network Node',
-            desc: '[Connects your router to Tailscale for secure remote access. Reach your home devices from anywhere without opening firewall ports.]' 
-        },
-        hybrid: { 
-            cmd: 'curl -sL ci5.run | sh -s hybrid', 
-            summary: 'Split-Horizon Routing',
-            desc: '[Directs incoming remote access through Tailscale, while forcing all outgoing home traffic through the anonymous Mullvad VPN.]' 
-        },
-        travel: { 
-            cmd: 'curl -sL ci5.run | sh -s travel', 
-            summary: 'Hotel Wi-Fi Bypass',
-            desc: '[Clones your MAC address and modifies TTL to mimic a single device. Essential for getting past captive portals at hotels & airports.]' 
-        },
-        focus: { 
-            cmd: 'curl -sL ci5.run | sh -s focus', 
-            summary: 'Productivity Timer',
-            desc: '[Temporarily blocks distracting sites (Social, Streaming) for a set duration. Automatically unblocks them when the timer expires.]' 
-        },
-        wipe: { 
-            cmd: 'curl -sL ci5.run | sh -s wipe', 
-            summary: 'Digital Shredder',
-            desc: '[Securely overwrites VPN keys, wipes shell history, flushes logs, and trims storage. Use before crossing borders or selling device.]' 
-        },
-        alert: { 
-            cmd: 'curl -sL ci5.run | sh -s alert', 
-            summary: 'Mobile Notifications',
-            desc: '[Configures ntfy.sh to send push alerts to your phone. Get notified instantly of intrusion attempts, errors, or reboots.]' 
-        },
-        ddns: { 
-            cmd: 'curl -sL ci5.run | sh -s ddns', 
-            summary: 'Dynamic IP Sync',
-            desc: '[Updates DNS records and re-syncs WireGuard peers when your home IP changes. Keeps VPNs connected on dynamic residential lines.]' 
-        },
+        
+        // ⚙️ SYSTEM
         paranoia: { 
             cmd: 'curl -sL ci5.run | sh -s paranoia', 
             summary: '[SURICATA] IDS Dead-Man Switch',
@@ -102,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
             summary: 'Secure Self-Update',
             desc: '[Fetches latest scripts with GPG signature verification. Includes a rollback checkpoint to revert changes if the update fails.]' 
         },
+        
+        // 🔧 LOCAL
         self: { 
             cmd: 'sh bone_marrow.sh', 
             summary: 'Deep System Diagnostic',
@@ -120,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
             desc: '[Verifies that the current install matches the official release manifest and that all security services are active and healthy.]', 
             local: true 
         },
+        
+        // 🗑️ MAINTENANCE
         away: { 
             cmd: 'curl -sL ci5.run | sh -s away', 
             summary: 'Factory Reset (CI5)',
@@ -128,7 +110,63 @@ document.addEventListener('DOMContentLoaded', () => {
         pure: { 
             cmd: 'curl -sL ci5.run | sh -s pure', 
             summary: 'Selective Uninstaller',
-            desc: '[Interactive wizard to remove specific components (e.g., "remove just Docker" or "remove just WireGuard") while keeping others.]' 
+            desc: '[Interactive wizard to remove specific components. Tracks install state for clean removal. Respects dependencies between corks.]' 
+        },
+        wipe: { 
+            cmd: 'curl -sL ci5.run | sh -s wipe', 
+            summary: 'Digital Shredder',
+            desc: '[Securely overwrites VPN keys, wipes shell history, flushes logs, and trims storage. Use before crossing borders or selling device.]' 
+        },
+        
+        // 🔐 VPN & PRIVACY
+        mullvad: { 
+            cmd: 'curl -sL ci5.run | sh -s mullvad', 
+            summary: 'WireGuard Privacy Shield',
+            desc: '[Configure Mullvad VPN with an automatic Killswitch. If the VPN drops, all traffic is blocked to prevent IP leaks.]' 
+        },
+        tailscale: { 
+            cmd: 'curl -sL ci5.run | sh -s tailscale', 
+            summary: 'Mesh Network Node',
+            desc: '[Connects your router to Tailscale for secure remote access. Reach your home devices from anywhere without opening firewall ports.]' 
+        },
+        hybrid: { 
+            cmd: 'curl -sL ci5.run | sh -s hybrid', 
+            summary: 'Split-Horizon Routing',
+            desc: '[Directs incoming remote access through Tailscale, while forcing all outgoing home traffic through the anonymous Mullvad VPN.]' 
+        },
+        
+        // ✈️ TRAVEL
+        travel: { 
+            cmd: 'curl -sL ci5.run | sh -s travel', 
+            summary: 'Hotel Wi-Fi Bypass',
+            desc: '[Clones your MAC address and modifies TTL to mimic a single device. Essential for getting past captive portals at hotels & airports.]' 
+        },
+        clone: { 
+            cmd: 'curl -sL ci5.run | sh -s clone', 
+            summary: 'SD Card Backup',
+            desc: '[Complete system clone to SD/USB with compression, encryption, and phone-flashable images. Deniable layouts for travel security.]' 
+        },
+        focus: { 
+            cmd: 'curl -sL ci5.run | sh -s focus', 
+            summary: 'Productivity Timer',
+            desc: '[Temporarily blocks distracting sites (Social, Streaming) for a set duration. Automatically unblocks them when the timer expires.]' 
+        },
+        
+        // 📡 MONITORING
+        alert: { 
+            cmd: 'curl -sL ci5.run | sh -s alert', 
+            summary: 'Mobile Notifications',
+            desc: '[Configures ntfy.sh to send push alerts to your phone. Get notified instantly of intrusion attempts, errors, or reboots.]' 
+        },
+        ddns: { 
+            cmd: 'curl -sL ci5.run | sh -s ddns', 
+            summary: 'Dynamic IP Sync',
+            desc: '[Updates DNS records and re-syncs WireGuard peers when your home IP changes. Keeps VPNs connected on dynamic residential lines.]' 
+        },
+        gamesense: { 
+            cmd: 'curl -sL ci5.run | sh -s gamesense', 
+            summary: 'Low-Latency VPN',
+            desc: '[Gaming-optimized VPN with real-time latency monitoring. Auto-switches endpoints for lowest ping.]' 
         }
     };
 
@@ -144,39 +182,26 @@ document.addEventListener('DOMContentLoaded', () => {
         loop();
     }
 
-    // Flash Terminal Helper (Fixed for Fast Clicking)
+    // Flash Terminal Helper
     let flashTimeout; 
     const flashTerminal = (color) => {
-        // Clear any existing cleanup timer to prevent premature removal
         if (flashTimeout) clearTimeout(flashTimeout);
-
-        // Remove any existing flash classes
         terminal.classList.remove('flash-green', 'flash-cyan', 'flash-purple', 'flash-orange', 'flash-yellow', 'flash-white', 'flash-dim', 'flash-red');
-        
-        // Force reflow to restart animation
         void terminal.offsetWidth; 
-        
-        // Add new flash class
         terminal.classList.add(`flash-${color}`);
-        
-        // Cleanup class after animation ends (1.47s = 1470ms)
         flashTimeout = setTimeout(() => {
             terminal.classList.remove(`flash-${color}`);
         }, 1470);
     };
 
-    // Core Command Logic (Shared by Click and Type)
+    // Core Command Logic
     const runCommand = (key) => {
         const c = COMMANDS[key];
         if (!c) return false;
 
-        // Get Color
         const color = CAT_COLORS[key] || 'green';
-        
-        // Trigger Flash
         flashTerminal(color);
 
-        // Render Output (Structured format: Name: [Summary] \n Desc \n \n Command)
         const t = c.local ? '<span style="color:var(--yellow)">[LOCAL]</span> ' : '';
         
         output.innerHTML = `
@@ -200,16 +225,15 @@ ${t}${c.desc}
             return;
         }
         
-        // 1. Try direct lookup
+        // Try direct lookup
         let key = v;
         
-        // 2. If no direct match, try finding by command string
+        // If no direct match, try finding by command string
         if (!COMMANDS[key]) {
             const foundEntry = Object.entries(COMMANDS).find(([k, val]) => val.cmd.toLowerCase() === v);
             if (foundEntry) key = foundEntry[0];
         }
         
-        // Execute
         if (!runCommand(key)) {
             flashTerminal('red');
             output.innerHTML = `<span style="color:var(--red)">Unknown:</span> ${v}`;
@@ -220,11 +244,8 @@ ${t}${c.desc}
     let tt;
     const showToast = (txt, colorName = 'green') => {
         toast.textContent = txt;
-        
-        // Apply category color to toast
         toast.style.backgroundColor = `var(--${colorName})`;
-        toast.style.color = '#000'; // Ensure readability
-
+        toast.style.color = '#000';
         toast.classList.add('show');
         clearTimeout(tt);
         tt = setTimeout(() => toast.classList.remove('show'), 1200);
@@ -234,18 +255,15 @@ ${t}${c.desc}
     document.querySelectorAll('.entry').forEach(el => {
         el.addEventListener('click', () => {
             const code = el.querySelector('code');
-            const key = el.getAttribute('data-cmd'); // Get command key
+            const key = el.getAttribute('data-cmd');
             
             if (!code) return;
 
-            // Execute Terminal Logic
             if (key) runCommand(key);
 
-            // Copy to Clipboard
             navigator.clipboard.writeText(code.textContent).then(() => {
                 triggerCopyVisuals(el, key, 'Copied!');
             }).catch(() => {
-                // Fallback for older browsers / non-secure contexts
                 const ta = document.createElement('textarea');
                 ta.value = code.textContent;
                 document.body.appendChild(ta);
@@ -260,8 +278,6 @@ ${t}${c.desc}
     const triggerCopyVisuals = (el, key, msg) => {
         el.classList.add('copied');
         setTimeout(() => el.classList.remove('copied'), 250);
-        
-        // Get color for toast
         const color = CAT_COLORS[key] || 'green';
         showToast(msg, color);
     };

@@ -1,13 +1,15 @@
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
 # CI5.RUN - HTTP Headers Configuration
-# ═══════════════════════════════════════════════════════════════════
+# v8.0 - Unified Verification
+# ═══════════════════════════════════════════════════════════════════════════
 
-# Global headers
+# Global security headers
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: interest-cohort=()
+  X-CI5-Version: 8.0
 
 # HTML pages - no cache (allow quick updates)
 /*.html
@@ -17,16 +19,39 @@
 /static/*
   Cache-Control: public, max-age=86400
 
+# stub.sh - The trust anchor (no cache, allow quick revocation)
+/stub.sh
+  Cache-Control: no-store
+  Content-Type: text/plain; charset=utf-8
+  X-CI5-Component: trust-anchor
+
 # Scripts - no cache (security: allow revocation)
 /scripts/*
   Cache-Control: no-store
   Content-Type: text/plain; charset=utf-8
 
-# API endpoints
+# Signatures - short cache
+/*.sig
+  Cache-Control: public, max-age=300
+  Content-Type: application/octet-stream
+
+# Keys - long cache (keys don't change often)
+/keys/*
+  Cache-Control: public, max-age=604800
+  Content-Type: text/plain; charset=utf-8
+
+# API/webhooks
 /api/*
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Cache-Control: no-store
 
-/stub.sh
+# Offline bundle
+/offline
+  Content-Type: application/gzip
+  Cache-Control: public, max-age=3600
+
+# Pure hooks (for sourcing)
+/pure-hooks
   Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-store
